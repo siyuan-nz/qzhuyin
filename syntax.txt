@@ -1,0 +1,35 @@
+\settopmargin{mm}
+Set the top page margin in millimeters.
+
+\setbottommargin{mm}
+Set the bottom page margin in millimeters.
+
+\setleftmargin{mm}
+Set the left page margin in millimeters.
+
+\setrightmargin{mm}
+Set the right page margin in millimeters.
+
+\setfont{font}
+Specify a font to use.
+
+\setfontsize{size pt}
+Specify the size of the font in points.
+
+\hspace{characters}
+Fill with specified number of characters of horizontal space.
+
+\vspace{characters}
+Fill with specified number of characters of vertical space.
+
+\zhuyin{bopomofo}
+Add zhu yin to the sentence delimited by space.
+
+\newpage{}
+Start a new page
+
+\\
+Line feed.
+
+Empty line
+Change paragraph.

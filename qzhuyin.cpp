@@ -12,8 +12,8 @@ void createPDF(QString a_strFileName)
                            QPageLayout::Millimeter);
     QPdfWriter writer(a_strFileName);
     writer.setPageLayout(pageLayout);
-    QFont pmingliu(QFont("PMingLiu", 12), &writer);
-    QFont zhuyinFont(QFont("PMingLiu", 5), &writer);
+    QFont pmingliu(QFont("文鼎ＰＬ中楷", 12), &writer);
+    QFont zhuyinFont(QFont("文鼎ＰＬ中楷", 5), &writer);
     QFontMetrics fontMetrics(pmingliu, &writer);
     QFontMetrics zhuyinMetrics(zhuyinFont, &writer);
     QPainter painter(&writer);
