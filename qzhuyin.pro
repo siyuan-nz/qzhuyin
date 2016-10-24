@@ -8,4 +8,6 @@ INCLUDEPATH += .
 QT += gui widgets
 
 # Input
-SOURCES += qzhuyin.cpp
+HEADERS += zhchar.h
+SOURCES += qzhuyin.cpp \
+           zhchar.cpp
