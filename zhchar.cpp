@@ -48,7 +48,7 @@ void ZhChar::draw(QPainter &painter, int x, int y)
         return;
     }
 
-    x += zhuYinFontMetrics.width(m_Tone);
+    x += zhuYinFontMetrics.width(m_Tone) * 2 / 3;
     // Align the tone to half way between the last 2 zhu yin characters
     yOffset = yOffset + zhuYinFontHeight / 2 + zhuYinFontHeight * (m_ZhuYin.length() - 2);
     painter.drawText(x, yOffset, m_Tone);
