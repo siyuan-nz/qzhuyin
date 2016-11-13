@@ -43,8 +43,10 @@ AstNode* Qzy2Ast::parse()
 {
     QFile qzyFile(m_fileName);
 
-    if (qzyFile.open(QIODevice::ReadOnly | QIODevice::Text))
+    if (!qzyFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        qFatal("Unable to open %s: error %d", qPrintable(m_fileName), qzyFile.error());
         return nullptr;
+    }
 
     m_scopeStack.push(new Scope);
 
@@ -63,10 +65,10 @@ AstNode* Qzy2Ast::parse()
             m_scopeStack.top()->m_childNodes.append(pNode);
         pCurrentText = nullptr;
     };
-    auto onWarning = [line, column, this](const QString &msg) {
+    auto onWarning = [&line, &column, this](const QString &msg) {
         qWarning("%s:%u,%u: warning: %s", qPrintable(m_fileName), line, column, qPrintable(msg));
     };
-    auto onError = [line, column, this](const QString &msg) {
+    auto onError = [&line, &column, this](const QString &msg) {
         qFatal("%s:%u,%u: error: %s", qPrintable(m_fileName), line, column, qPrintable(msg));
     };
 
@@ -119,6 +121,8 @@ AstNode* Qzy2Ast::parse()
                             onError(status.message);
                             break;
                         }
+
+                        m_parseState = eParseState::Text;
                     }
                     break;
 
@@ -170,6 +174,7 @@ AstNode* Qzy2Ast::parse()
                     } else {
                         commandName.clear();
                         m_parseState = eParseState::CommandName;
+                        stateLoop = true;
                     }
                     break;
 
@@ -251,9 +256,9 @@ int Qzy2Ast::parseSingleIntArg(CommandStatus &status, const QString &commandName
     int value = arg.toInt(&ok);
 
     if (ok) {
-        if (positiveOnly && value >= 0)
-            status.status = eCommandStatus::Success;
-        else {
+        status.status = eCommandStatus::Success;
+
+        if (positiveOnly && value < 0) {
             status.status = eCommandStatus::Error;
             failPositive = true;
         }
@@ -405,18 +410,19 @@ CommandStatus Qzy2Ast::zhuYin(const QString &arg)
     if (pText) {
         QStringList &&zhuYinList = arg.split(' ', QString::SkipEmptyParts);
         bool prematureTerminate = false;
-        auto textIter = pText->m_text.begin();
-        auto textEnd = pText->m_text.end();
+        auto textIter = pText->m_text.rbegin();
+        auto textEnd = pText->m_text.rend();
+        auto zhuYinEnd = zhuYinList.rend();
 
-        for (const QString &zhuYin : zhuYinList) {
+        for (auto zhuYinIter = zhuYinList.rbegin(); zhuYinIter != zhuYinEnd; zhuYinIter++) {
             if (textIter == textEnd) {
                 prematureTerminate = true;
                 break;
             } else {
-                textIter->setZhuYin(zhuYin);
+                textIter->setZhuYin(*zhuYinIter);
                 if (textIter->zhuYin().length() > 3) {
                     QString message = QString("invalid zhu yin for character \"")
-                                    + textIter->zhChar() + "\" \"" + zhuYin + '\"';
+                                    + textIter->zhChar() + "\" \"" + *zhuYinIter + '\"';
                     appendWarningMessage(status, message);
                 }
             }
@@ -424,9 +430,9 @@ CommandStatus Qzy2Ast::zhuYin(const QString &arg)
             textIter++;
         }
 
-        if (textIter != textEnd || prematureTerminate) {
+        if (prematureTerminate) {
             status.status = eCommandStatus::Warning;
-            QString message("number of characters specified with \\zhuyin mismatches\n\t");
+            QString message("number of characters specified with \\zhuyin is more than text\n\t");
 
             for (auto const &zhChar : pText->m_text)
                 message += zhChar.zhChar();

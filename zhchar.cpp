@@ -99,7 +99,7 @@ void ZhChar::parseZhuYin(const QString &zhuYin)
         if (m_tones.contains(m_tone)) {
             m_zhuYin.chop(1);
         } else
-            m_tone = std::move(QChar());
+            m_tone = QChar();
     }
 }
 

@@ -1,7 +1,11 @@
 #include <QtWidgets>
 #include <QtGui>
 #include <QDebug>
+#include <QScopedPointer>
 
+#include "ast.h"
+#include "astprinter.h"
+#include "qzy2ast.h"
 #include "zhchar.h"
 
 void createPDF(QString a_strFileName)
@@ -52,12 +56,22 @@ qDebug() << "i =" << i << ", c =" << QString(c) << ", zhuyin =" << zhuyin.at(i);
     }
 }
 
+AstNode* testParser(const QString &fileName)
+{
+    Qzy2Ast qzy2Ast(fileName);
+    QScopedPointer<AstNode> xRootNode(qzy2Ast.parse());
+    AstPrinter astPrinter(*xRootNode);
+    return xRootNode.take();
+}
+
 int main(int argc,char** argv)
 {
     QApplication app(argc,argv);
-    createPDF("output.pdf");
-    QProcess okular;
-    okular.start("okular output.pdf");
-    okular.waitForFinished(-1);
+//     createPDF("output.pdf");
+    QScopedPointer<AstNode> xRootNode;
+    xRootNode.reset(testParser("example.qzy"));
+//     QProcess okular;
+//     okular.start("okular output.pdf");
+//     okular.waitForFinished(-1);
     return 0;
 }
