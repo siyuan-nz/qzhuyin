@@ -1,6 +1,8 @@
 #ifndef ASTVISITOR_H
 #define ASTVISITOR_H
 
+#include <QtGlobal>
+
 class HSpace;
 class VSpace;
 class NewLine;

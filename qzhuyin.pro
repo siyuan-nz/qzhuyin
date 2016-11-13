@@ -9,9 +9,11 @@ QT += gui widgets
 
 # Input
 HEADERS += ast.h \
+           astprinter.h \
            qzy2ast.h \
            zhchar.h
 SOURCES += ast.cpp \
+           astprinter.cpp \
            qzhuyin.cpp \
            qzy2ast.cpp \
            zhchar.cpp

@@ -17,6 +17,7 @@ public:
 
     Page* NextPage();
 
+protected:
     void visit(HSpace &) override;
     void visit(VSpace &) override;
     void visit(NewLine &) override;
@@ -30,7 +31,6 @@ public:
     void visit(SetRightMargin &) override;
     void visit(SetTopMargin &) override;
     void visit(Text &) override;
-    void visit(ZhuYin &) override;
     void visit(ScopeRef &) override;
     void visit(TextRef &) override;
 
