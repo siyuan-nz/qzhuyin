@@ -8,21 +8,29 @@ class QPainter;
 class ZhChar
 {
 public:
-    ZhChar(const QChar &zhChar, const QString &zhuYin);
+    ZhChar(const QChar &zhChar, const QString &zhuYin = QString());
+    ZhChar(const ZhChar &other);
+    ZhChar(ZhChar &&other);
 
-    QChar zhChar() const { return m_Char; }
-    QString zhuYin() const { return m_ZhuYin; }
-    QChar tone() const { return m_Tone; }
     void draw(QPainter &painter, int x, int y);
+    void setZhuYin(const QString &zhuyin);
+    QChar tone() const;
+    QChar zhChar() const;
+    QString zhuYin() const;
+
+    ZhChar& operator=(const ZhChar &other);
+    ZhChar& operator=(ZhChar &&other);
 
     static void drawText(QPainter &painter, int x, int y, const QString &text);
 
 private:
-    QChar m_Char;
-    QString m_ZhuYin;
-    QChar m_Tone;
+    void parseZhuYin(const QString &zhuYin);
 
-    static const QString m_Tones;
+    QChar m_char;
+    QChar m_tone;
+    QString m_zhuYin;
+
+    static const QString m_tones;
 };
 
 #endif

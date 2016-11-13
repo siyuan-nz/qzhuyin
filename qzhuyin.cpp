@@ -37,7 +37,7 @@ qDebug() << "i =" << i << ", c =" << QString(c) << ", zhuyin =" << zhuyin.at(i);
                 x -= fontMetrics.width(text, 1);
                 newLines = 0;
             } else {
-                x -= fontMetrics.width(text, 1) + zhuyinMetrics.width(zhuyin.first(), 1) * 3;
+                x -= fontMetrics.width(text, 1) * 5 / 3;
             }
             i++;
             continue;
@@ -46,7 +46,7 @@ qDebug() << "i =" << i << ", c =" << QString(c) << ", zhuyin =" << zhuyin.at(i);
         y += fontMetrics.lineSpacing();
         if (y > painter.viewport().height()) {
             y = 0;
-            x -= fontMetrics.width(text, 1) + zhuyinMetrics.width(zhuyin.first(), 1) * 3;
+                x -= fontMetrics.width(text, 1) * 5 / 3;
         }
         i++;
     }
