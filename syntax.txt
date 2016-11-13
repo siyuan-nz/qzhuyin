@@ -1,3 +1,5 @@
+% comment
+
 \settopmargin{mm}
 Set the top page margin in millimeters.
 
@@ -31,5 +33,5 @@ Start a new page
 \\
 Line feed.
 
-Empty line
+Blank line(s)
 Change paragraph.
