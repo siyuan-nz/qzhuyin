@@ -11,6 +11,8 @@ class PageItemVisitor;
 class PageItem
 {
 public:
+    virtual ~PageItem();
+    virtual QString className() const = 0;
     virtual void welcome(PageItemVisitor &visitor) = 0;
 
     QRect m_rect;
@@ -19,6 +21,7 @@ public:
 class Box : public PageItem
 {
 public:
+    QString className() const override;
     void welcome(PageItemVisitor &visitor) override;
 
     QList<PageItem *> m_enclosedItems;
@@ -27,6 +30,7 @@ public:
 class LineText : public PageItem
 {
 public:
+    QString className() const override;
     void welcome(PageItemVisitor &visitor) override;
 
     QList<ZhChar> m_text;

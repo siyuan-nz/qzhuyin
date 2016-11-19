@@ -5,9 +5,14 @@
 
 #include "ast.h"
 #include "astprinter.h"
+#include "pagebuilder.h"
+#include "pagedebugoutput.h"
+#include "pagelayout.h"
+#include "pagerenderer.h"
 #include "qzy2ast.h"
 #include "zhchar.h"
 
+#if 0
 void createPDF(QString a_strFileName)
 {
     QPageLayout pageLayout(QPageSize(QPageSize::A4),
@@ -24,6 +29,8 @@ void createPDF(QString a_strFileName)
 qDebug() << "pageLayout =" << writer.pageLayout();
 qDebug() << "paintRect =" << writer.pageLayout().paintRectPoints();
 qDebug() << "viewport =" << painter.viewport();
+qDebug() << "writer width =" << writer.width();
+qDebug() << "writer height =" << writer.height();
     painter.setFont(pmingliu);
     QString text("初，鄭武公娶于申，曰武姜，生莊公及共叔段。\n莊公寤生，驚姜氏，故名曰寤生，遂惡之。愛共叔段，欲立之。亟請於武公，公弗許。\n\n及莊公即位，為之請制。公曰：﹁制，巖邑也。虢叔死焉，佗邑唯命。﹂請京，使居之，謂之京城大叔。");
     QStringList zhuyin{"ㄔㄨ", "", "ㄓㄥˋ", "ㄨˇ", "ㄍㄨㄥ", "ㄑㄩˇ", "ㄩˊ", "ㄕㄣ", "", "ㄩㄝ", "ㄨˇ", "ㄐㄧㄤ", "", "ㄕㄥ", "ㄓㄨㄤ", "ㄍㄨㄥ", "ㄐㄧˊ", "ㄍㄨㄥ", "ㄕㄨˊ", "ㄉㄨㄢˋ", "", "", "ㄓㄨㄤ", "ㄍㄨㄥ", "ㄨˋ", "ㄕㄥ", "", "ㄐㄧㄥ", "ㄐㄧㄤ", "ㄕˋ", "", "ㄍㄨˋ", "ㄇㄧㄥˊ", "ㄩㄝ", "ㄨˋ", "ㄕㄥ", "", "ㄙㄨㄟˋ", "ㄨˋ", "ㄓ", "", "ㄞˋ", "ㄍㄨㄥ", "ㄕㄨˊ", "ㄉㄨㄢˋ", "", "ㄩˋ", "ㄌㄧˋ", "ㄓ", "", "ㄑㄧˋ", "ㄑㄧㄥˇ", "ㄩˊ", "ㄨˇ", "ㄍㄨㄥ", "", "ㄍㄨㄥ", "ㄈㄨˊ", "ㄒㄩˇ", "", "", "", "ㄐㄧˊ", "ㄓㄨㄤ", "ㄍㄨㄥ", "ㄐㄧˊ", "ㄨㄟˋ", "", "ㄨㄟˋ", "ㄓ", "ㄑㄧㄥˇ", "ㄓˋ", "", "ㄍㄨㄥ", "ㄩㄝ", "", "", "ㄓˋ", "", "ㄧㄢˊ", "ㄧˋ", "ㄧㄝˇ", "", "ㄍㄨㄛˊ", "ㄕㄨˊ", "ㄙˇ", "ㄧㄢ", "", "ㄊㄨㄛ", "ㄧˋ", "ㄨㄟˊ", "ㄇㄧㄥˋ", "", "", "ㄑㄧㄥˇ", "ㄐㄧㄥ", "", "ㄕˇ", "ㄐㄩ", "ㄓ", "", "ㄨㄟˋ", "ㄓ", "ㄐㄧㄥ", "ㄔㄥˊ", "ㄊㄞˋ", "ㄕㄨˊ", ""};
@@ -55,6 +62,7 @@ qDebug() << "i =" << i << ", c =" << QString(c) << ", zhuyin =" << zhuyin.at(i);
         i++;
     }
 }
+#endif
 
 AstNode* testParser(const QString &fileName)
 {
@@ -64,12 +72,35 @@ AstNode* testParser(const QString &fileName)
     return xRootNode.take();
 }
 
+void testPageRenderer(Page &page, QPdfWriter &pdfWriter)
+{
+    PageRenderer renderer(pdfWriter);
+    renderer.render(page);
+}
+
+void testPageBuilder(AstNode *pRootNode)
+{
+    QPdfWriter pdfWriter("output.pdf");
+    PageBuilder pageBuilder(pdfWriter, *pRootNode);
+    Page *pPage;
+    PageLayout layout;
+
+    do {
+        pPage = pageBuilder.nextPage();
+        if (pPage) {
+            PageDebugOutput debug(*pPage);
+            layout.layout(*pPage);
+            testPageRenderer(*pPage, pdfWriter);
+        }
+    } while (pPage);
+}
+
 int main(int argc,char** argv)
 {
     QApplication app(argc,argv);
-//     createPDF("output.pdf");
     QScopedPointer<AstNode> xRootNode;
     xRootNode.reset(testParser("example.qzy"));
+    testPageBuilder(xRootNode.data());
 //     QProcess okular;
 //     okular.start("okular output.pdf");
 //     okular.waitForFinished(-1);

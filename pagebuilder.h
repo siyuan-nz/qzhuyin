@@ -2,20 +2,25 @@
 #define PAGEBUILDER_H
 
 #include "astvisitor.h"
-#include "page.h"
+#include "zhchar.h"
 
+#include <QFont>
 #include <QStack>
 
 class AstNode;
+class AstNodeRef;
 class Box;
+class Page;
 class PageItem;
+class QPdfWriter;
 
-class PageBuilder : public AstVisitor
+class PageBuilder : protected AstVisitor
 {
 public:
     PageBuilder(QPdfWriter &pdfWriter, AstNode &root);
+    ~PageBuilder();
 
-    Page* NextPage();
+    Page* nextPage();
 
 protected:
     void visit(HSpace &) override;
@@ -35,10 +40,17 @@ protected:
     void visit(TextRef &) override;
 
 private:
+    enum class eVisitStatus {
+        Success,
+        PageFull,
+        EndPage
+    };
+
     void endPage(AstNodeRef *pAstNodeRef);
-    bool fitItem(PageItem *pPageItem);
+    eVisitStatus fitItem(PageItem *pPageItem);
     PageItem* widestItem(const QList<PageItem *> &items);
     int layoutText(const QList<ZhChar> &text, int offset);
+    void layoutPage(Page &page);
 
     QPdfWriter &m_pdfWriter;
     AstNode &m_rootNode;
@@ -48,12 +60,7 @@ private:
     PageItem *m_pWidestItem;
     QList<PageItem *> m_currentColumn;
     Box *m_pCurrentBox;
-
-    enum class eVisitStatus {
-        Success,
-        PageFull,
-        EndPage
-    } m_visitStatus;
+    eVisitStatus m_visitStatus;
 };
 
 #endif

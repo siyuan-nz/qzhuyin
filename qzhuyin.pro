@@ -10,10 +10,24 @@ QT += gui widgets
 # Input
 HEADERS += ast.h \
            astprinter.h \
+           astvisitor.h \
+           page.h \
+           pagebuilder.h \
+           pagedebugoutput.h \
+           pageitem.h \
+           pageitemvisitor.h \
+           pagelayout.h \
+           pagerenderer.h \
            qzy2ast.h \
            zhchar.h
 SOURCES += ast.cpp \
            astprinter.cpp \
+           page.cpp \
+           pagebuilder.cpp \
+           pagedebugoutput.cpp \
+           pageitem.cpp \
+           pagelayout.cpp \
+           pagerenderer.cpp \
            qzhuyin.cpp \
            qzy2ast.cpp \
            zhchar.cpp

@@ -3,8 +3,6 @@
 
 #include <iostream>
 
-#include <QDebug>
-
 AstPrinter::AstPrinter(AstNode &root)
 {
     root.welcome(*this);

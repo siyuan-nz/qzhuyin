@@ -12,7 +12,6 @@ public:
     ZhChar(const ZhChar &other);
     ZhChar(ZhChar &&other);
 
-    void draw(QPainter &painter, int x, int y);
     void setZhuYin(const QString &zhuyin);
     QChar tone() const;
     QChar zhChar() const;
@@ -20,8 +19,6 @@ public:
 
     ZhChar& operator=(const ZhChar &other);
     ZhChar& operator=(ZhChar &&other);
-
-    static void drawText(QPainter &painter, int x, int y, const QString &text);
 
 private:
     void parseZhuYin(const QString &zhuYin);
