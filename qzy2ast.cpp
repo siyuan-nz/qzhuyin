@@ -184,7 +184,7 @@ AstNode* Qzy2Ast::parse()
                     else if (!c.isSpace()) {
                         if (lineFeeds > 1)
                             pParagraph = nullptr;
-                        else {
+                        else if (pCurrentText) {
                             pVSpace = new VSpace;
                             pVSpace->m_space = 1;
                             addNonTextNode(pVSpace);

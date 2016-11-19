@@ -1,27 +1,34 @@
 #include "pagebuilder.h"
 
 #include "ast.h"
+#include "page.h"
 #include "pageitem.h"
 
 #include <cassert>
 
+#include <QFontMetrics>
 #include <QPdfWriter>
 
 PageBuilder::PageBuilder(QPdfWriter &pdfWriter, AstNode &root)
     : m_pdfWriter(pdfWriter)
     , m_rootNode(root)
     , m_pWidestItem(nullptr)
-    , m_currentBox(nullptr)
+    , m_pCurrentBox(nullptr)
 {
     m_xPage.reset(new Page(pdfWriter));
+    m_xPage->setPageNumber(1);
 
     QFont defaultFont;
     m_fontStack.push(QFont(defaultFont, &m_pdfWriter));
 }
 
-Page* PageBuilder::NextPage()
+PageBuilder::~PageBuilder()
 {
-    if (m_resumeRefs.isEmpty())
+}
+
+Page* PageBuilder::nextPage()
+{
+    if (m_xPage && m_resumeRefs.isEmpty())
         m_rootNode.welcome(*this);
     else {
         while (!m_resumeRefs.isEmpty()) {
@@ -37,8 +44,11 @@ Page* PageBuilder::NextPage()
     }
 
     Page *pPage = m_xPage.take();
-    m_xPage.reset(new Page(*pPage));
-    m_xPage->clearPage();
+    if (!m_resumeRefs.isEmpty()) {
+        m_xPage.reset(new Page(*pPage));
+        m_xPage->clearPage();
+        m_xPage->setPageNumber(m_xPage->pageNumber() + 1);
+    }
     return pPage;
 }
 
@@ -47,8 +57,8 @@ void PageBuilder::visit(HSpace &astNode)
     QFont currentFont = m_fontStack.top();
     QFontMetrics fontMetrics(currentFont, &m_pdfWriter);
     Box *pBox = new Box;
-    pBox->m_rect.setWidth(fontMetrics.width(QChar(0x2000) * astNode.m_space);
-    pBox->m_rect.setHeight(0);
+    pBox->m_rect.setWidth(fontMetrics.width(QChar(0x2000)) * astNode.m_space);
+    pBox->m_rect.setHeight(m_xPage->pageHeight());
     m_visitStatus = fitItem(pBox);
 
     if (m_visitStatus == eVisitStatus::Success)
@@ -65,7 +75,6 @@ void PageBuilder::visit(VSpace &astNode)
     pBox->m_rect.setWidth(0);
     pBox->m_rect.setHeight(fontMetrics.lineSpacing() * astNode.m_space);
     m_visitStatus = fitItem(pBox);
-    // TODO: Conditionally skip at begining or end of line
 
     if (m_visitStatus == eVisitStatus::Success)
         m_xPage->addPageItem(pBox);
@@ -73,7 +82,7 @@ void PageBuilder::visit(VSpace &astNode)
         delete pBox;
 }
 
-void PageBuilder::visit(NewLine &astNode)
+void PageBuilder::visit(NewLine &)
 {
     m_pWidestItem = widestItem(m_currentColumn);
 
@@ -87,15 +96,15 @@ void PageBuilder::visit(NewLine &astNode)
     }
 }
 
-void PageBuilder::visit(NewPage &astNode)
+void PageBuilder::visit(NewPage &)
 {
     endPage(nullptr);
     m_visitStatus = eVisitStatus::EndPage;
 }
 
-void PageBuilder::visit(NewParagraph &astNode)
+void PageBuilder::visit(NewParagraph &)
 {
-    if (m_currentBox) {
+    if (m_pCurrentBox) {
         NewLine newLine;
         visit(newLine);
     }
@@ -105,7 +114,7 @@ void PageBuilder::visit(NewParagraph &astNode)
     visit(vSpace);
 
     if (m_visitStatus == eVisitStatus::Success) {
-        m_currentBox = new Box;
+        m_pCurrentBox = new Box;
         m_xPage->addPageItem(m_pCurrentBox);
     }
 }
@@ -143,33 +152,37 @@ void PageBuilder::visit(Scope &astNode)
 void PageBuilder::visit(SetBottomMargin &astNode)
 {
     m_xPage->setBottomMargin(astNode.m_mm);
+    m_visitStatus = eVisitStatus::Success;
 }
 
 void PageBuilder::visit(SetFont &astNode)
 {
-    QFont currentFont = m_fontStack.top();
-    currentFont.setFamily(astNode.m_family);
+    m_fontStack.top().setFamily(astNode.m_family);
+    m_visitStatus = eVisitStatus::Success;
 }
 
 void PageBuilder::visit(SetFontSize &astNode)
 {
-    QFont currentFont = m_fontStack.top();
-    currentFont.setPointSize(astNode.m_pointSize);
+    m_fontStack.top().setPointSize(astNode.m_pointSize);
+    m_visitStatus = eVisitStatus::Success;
 }
 
 void PageBuilder::visit(SetLeftMargin &astNode)
 {
     m_xPage->setLeftMargin(astNode.m_mm);
+    m_visitStatus = eVisitStatus::Success;
 }
 
-void void PageBuilder::visit(SetRightMargin &astNode)
+void PageBuilder::visit(SetRightMargin &astNode)
 {
     m_xPage->setRightMargin(astNode.m_mm);
+    m_visitStatus = eVisitStatus::Success;
 }
 
 void PageBuilder::visit(SetTopMargin &astNode)
 {
     m_xPage->setTopMargin(astNode.m_mm);
+    m_visitStatus = eVisitStatus::Success;
 }
 
 void PageBuilder::visit(Text &astNode)
@@ -177,14 +190,14 @@ void PageBuilder::visit(Text &astNode)
     int position = layoutText(astNode.m_text, 0);
 
     if (m_visitStatus != eVisitStatus::Success) {
-        TextRef *pTextRef = new TextRef(astNode, astNode.m_position);
+        TextRef *pTextRef = new TextRef(astNode, position);
         endPage(pTextRef);
     }
 }
 
 void PageBuilder::visit(ScopeRef &astNode)
 {
-    Scope &scope = astNode.m_astNode;
+    Scope &scope = static_cast<Scope &>(astNode.m_astNode);
     int &position = astNode.m_position;
 
     for (int i = position; i < scope.m_childNodes.count(); i++) {
@@ -212,7 +225,8 @@ void PageBuilder::visit(ScopeRef &astNode)
 
 void PageBuilder::visit(TextRef &astNode)
 {
-    astNode.m_position = layoutText(astNode.m_text, astNode.m_position);
+    Text &text = static_cast<Text &>(astNode.m_astNode);
+    astNode.m_position = layoutText(text.m_text, astNode.m_position);
 
     if (m_visitStatus != eVisitStatus::Success) {
         endPage(nullptr);
@@ -225,17 +239,17 @@ void PageBuilder::endPage(AstNodeRef *pAstNodeRef)
         m_resumeRefs.push(pAstNodeRef);
 
     m_pWidestItem = nullptr;
-    m_currentBox = nullptr;
+    m_pCurrentBox = nullptr;
     m_currentColumn.clear();
 }
 
-eVisitStatus PageBuilder::fitItem(PageItem *pPageItem)
+PageBuilder::eVisitStatus PageBuilder::fitItem(PageItem *pPageItem)
 {
     int x;
     int y;
     QRect &itemRect = pPageItem->m_rect;
 
-    if (m_pages.pageItems().isEmpty()) {
+    if (m_xPage->pageItems().isEmpty()) {
         x = m_xPage->rightEdge() - pPageItem->m_rect.width();
         y = 0;
     } else if (m_currentColumn.isEmpty()) {
@@ -266,7 +280,7 @@ eVisitStatus PageBuilder::fitItem(PageItem *pPageItem)
     return eVisitStatus::Success;
 }
 
-PageBuilder::widestItem(const QList<PageItem *> &items)
+PageItem* PageBuilder::widestItem(const QList<PageItem *> &items)
 {
     PageItem *pWidestItem = nullptr;
     int widest = 0;
@@ -286,27 +300,27 @@ int PageBuilder::layoutText(const QList<ZhChar> &text, int offset)
 {
     QFont currentFont = m_fontStack.top();
     QFontMetrics fontMetrics(currentFont, &m_pdfWriter);
-    int lineWidth = fontMetrics.width(text.first().m_char) * 5 / 3;
+    int lineWidth = fontMetrics.width(text.first().zhChar()) * 5 / 3;
     int textLength = text.count() - offset;
     int columnHeight = m_currentColumn.isEmpty() ? 0
                                                  : m_currentColumn.last()->m_rect.y() +
-                                                   m_currentColumn->last()->m_rect.height();
+                                                   m_currentColumn.last()->m_rect.height();
     int charsFirstLine = (m_xPage->pageHeight() - columnHeight) / fontMetrics.lineSpacing();
 
     if (charsFirstLine) {
         if (textLength <= charsFirstLine)
             charsFirstLine = textLength;
 
-        LineText lineText = new LineText;
-        lineText->m_rect.setWidth(lineWidth);
-        lineText->m_rect.setHeight(charsFirstLine * fontMetrics.lineSpacing());
-        lineText->m_text = text.mid(offset, charsFirstLine);
-        lineText->m_font = currentFont;
-        m_pCurrentBox->m_enclosedItems.append(lineText);
-        m_visitStatus = fitItem(lineText);
+        LineText *pLineText = new LineText;
+        pLineText->m_rect.setWidth(lineWidth);
+        pLineText->m_rect.setHeight(charsFirstLine * fontMetrics.lineSpacing());
+        pLineText->m_text = text.mid(offset, charsFirstLine);
+        pLineText->m_font = currentFont;
+        m_pCurrentBox->m_enclosedItems.append(pLineText);
+        m_visitStatus = fitItem(pLineText);
 
         if (charsFirstLine == textLength)
-            return;
+            return textLength;
     }
 
     int charsPerLine = m_xPage->pageHeight() / fontMetrics.lineSpacing();
@@ -315,34 +329,34 @@ int PageBuilder::layoutText(const QList<ZhChar> &text, int offset)
 
     for (int i = 0; i < fullLines; i++) {
         int processedChars = offset + charsFirstLine + i * charsPerLine;
-        LineText lineText = new LineText;
-        lineText->m_rect.setWidth(lineWidth);
-        lineText->m_rect.setHeight(m_xPage->pageHeight());
-        m_visitStatus = fitItem(lineText);
+        LineText *pLineText = new LineText;
+        pLineText->m_rect.setWidth(lineWidth);
+        pLineText->m_rect.setHeight(m_xPage->pageHeight());
+        m_visitStatus = fitItem(pLineText);
 
         if (m_visitStatus == eVisitStatus::Success) {
-            m_pCurrentBox->m_enclosedItems.append(lineText);
-            lineText->m_text = text.mid(processedChars, charsPerLine);
-            lineText->m_font = currentFont;
+            m_pCurrentBox->m_enclosedItems.append(pLineText);
+            pLineText->m_text = text.mid(processedChars, charsPerLine);
+            pLineText->m_font = currentFont;
         } else {
-            delete lineText;
+            delete pLineText;
             return processedChars;
         }
     }
 
     if (charsLastLine) {
         int processedChars = offset + textLength - charsLastLine;
-        LineText lineText = new LineText;
-        lineText->m_rect.setWidth(lineWidth);
-        lineText->m_rect.setHeight(charsLastLine * fontMetrics.lineSpacing());
-        m_visitStatus = fitItem(lineText);
+        LineText *pLineText = new LineText;
+        pLineText->m_rect.setWidth(lineWidth);
+        pLineText->m_rect.setHeight(charsLastLine * fontMetrics.lineSpacing());
+        m_visitStatus = fitItem(pLineText);
 
         if (m_visitStatus == eVisitStatus::Success) {
-            m_pCurrentBox->m_enclosedItems.append(lineText);
-            lineText->m_text = text.mid(processedChars);
-            lineText->m_font = currentFont;
+            m_pCurrentBox->m_enclosedItems.append(pLineText);
+            pLineText->m_text = text.mid(processedChars);
+            pLineText->m_font = currentFont;
         } else {
-            delete lineText;
+            delete pLineText;
             return processedChars;
         }
     }

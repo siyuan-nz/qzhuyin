@@ -1,16 +1,16 @@
 #ifndef PAGEITEMVISITOR_H
 #define PAGEITEMVISITOR_H
 
-class PageItem;
+#include <QtGlobal>
+
 class Box;
 class LineText;
 
 class PageItemVisitor
 {
 public:
-    void visit(PageItem &) { qWarning("visit(PageItem &) unimplemented"); }
-    void visit(Box &) { qWarning("visit(Box &) unimplemented"); }
-    void visit(LineText &) { qWarning("visit(LineText &) unimplemented"); }
+    virtual void visit(Box &) { qWarning("visit(Box &) unimplemented"); }
+    virtual void visit(LineText &) { qWarning("visit(LineText &) unimplemented"); }
 };
 
 #endif
