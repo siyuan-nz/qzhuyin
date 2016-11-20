@@ -11,6 +11,12 @@ PageItem::~PageItem()
 {
 }
 
+Box::~Box()
+{
+    while (!m_enclosedItems.isEmpty())
+        delete m_enclosedItems.takeFirst();
+}
+
 CLASSNAME(Box)
 
 void Box::welcome(PageItemVisitor &visitor)
