@@ -5,7 +5,7 @@
 TEMPLATE = app
 TARGET = qzhuyin
 INCLUDEPATH += .
-QT += gui widgets
+QT += gui
 
 # Input
 HEADERS += ast.h \
