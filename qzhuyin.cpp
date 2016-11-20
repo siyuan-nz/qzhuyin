@@ -1,4 +1,4 @@
-#include <QDebug>
+#include <QFileInfo>
 #include <QGuiApplication>
 #include <QCommandLineParser>
 #include <QPdfWriter>
@@ -21,33 +21,39 @@ struct Options {
     QString source;
 };
 
-AstNode* testParser(const QString &fileName)
+AstNode* parseSource(const Options &options)
 {
-    Qzy2Ast qzy2Ast(fileName);
-    QScopedPointer<AstNode> xRootNode(qzy2Ast.parse());
-    AstPrinter astPrinter(*xRootNode);
-    return xRootNode.take();
+    Qzy2Ast qzy2Ast(options.source);
+    AstNode *pRootNode = qzy2Ast.parse();
+
+    if (pRootNode && options.debug)
+        AstPrinter astPrinter(*pRootNode);
+
+    return pRootNode;
 }
 
-void testPageRenderer(Page &page, QPdfWriter &pdfWriter)
+void renderPage(Page &page, QPdfWriter &pdfWriter)
 {
     PageRenderer renderer(pdfWriter);
     renderer.render(page);
 }
 
-void testPageBuilder(AstNode *pRootNode)
+void pageBuilder(AstNode *pRootNode, const Options &options)
 {
-    QPdfWriter pdfWriter("output.pdf");
+    QFileInfo sourceFileInfo(options.source);
+    QPdfWriter pdfWriter(sourceFileInfo.baseName() + ".pdf");
     PageBuilder pageBuilder(pdfWriter, *pRootNode);
     QScopedPointer<Page> xPage;
-    PageLayout layout;
+    PageLayout pageLayout;
 
     do {
         xPage.reset(pageBuilder.nextPage());
         if (xPage) {
-            PageDebugOutput debug(*xPage);
-            layout.layout(*xPage);
-            testPageRenderer(*xPage, pdfWriter);
+            if (options.debug)
+                PageDebugOutput debug(*xPage);
+
+            pageLayout.layout(*xPage);
+            renderPage(*xPage, pdfWriter);
         }
     } while (xPage);
 }
@@ -83,7 +89,7 @@ int main(int argc, char *argv[])
     parseOptions(app, options);
 
     QScopedPointer<AstNode> xRootNode;
-    xRootNode.reset(testParser(options.source));
-    testPageBuilder(xRootNode.data());
+    xRootNode.reset(parseSource(options));
+    pageBuilder(xRootNode.data(), options);
     return 0;
 }
