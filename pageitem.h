@@ -21,6 +21,7 @@ public:
 class Box : public PageItem
 {
 public:
+    ~Box();
     QString className() const override;
     void welcome(PageItemVisitor &visitor) override;
 

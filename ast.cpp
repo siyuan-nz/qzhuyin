@@ -47,9 +47,8 @@ void NewParagraph::welcome(AstVisitor &visitor)
 
 Scope::~Scope()
 {
-    while (!m_childNodes.isEmpty()) {
+    while (!m_childNodes.isEmpty())
         delete m_childNodes.takeFirst();
-    }
 }
 
 CLASSNAME(Scope)

@@ -1,4 +1,5 @@
 #include "page.h"
+#include "pageitem.h"
 
 #include <QPdfWriter>
 
@@ -39,6 +40,8 @@ Page::Page(const Page &other)
 
 Page::~Page()
 {
+    while (!m_pageItems.isEmpty())
+        delete m_pageItems.takeFirst();
 }
 
 void Page::addPageItem(PageItem *pPageItem)
