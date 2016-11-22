@@ -15,19 +15,19 @@ protected:
 
 private:
     void translateItem(PageItem &pageItem);
-    int m_x;
+    int m_translateX;
 };
 
 MovePageItem::MovePageItem(PageItem& pageItem, int x)
-    : m_x(x)
+    : m_translateX(x - pageItem.m_rect.x())
 {
-    pageItem.welcome(*this);
+    if (m_translateX)
+        pageItem.welcome(*this);
 }
 
 void MovePageItem::translateItem(PageItem &pageItem)
 {
-    int translateX = pageItem.m_rect.x() - m_x;
-    pageItem.m_rect.translate(translateX, 0);
+    pageItem.m_rect.translate(m_translateX, 0);
 }
 
 void MovePageItem::visit(Box &box)
@@ -86,18 +86,24 @@ void PageLayout::adjustGaps(Page &page, const QList<Box *> &boxes)
         occupiedWidth += box->m_rect.width();
 
     int remainingWidth = page.pageWidth() - occupiedWidth;
-    int gap = remainingWidth / (boxes.count() - 1);
 
-    if (gap <= maxGap) {
-        auto boxIter = boxes.begin() + 1;
-        auto prevBoxIter = boxes.begin();
-        auto lastBoxIter = boxes.end() - 1;
+    if (boxes.count() > 1) {
+        int gap = remainingWidth / (boxes.count() - 1);
 
-        for (; boxIter != lastBoxIter; boxIter++) {
-            QRect &boxRect = (*boxIter)->m_rect;
-            QRect &prevBoxRect = (*prevBoxIter)->m_rect;
-            int x = prevBoxRect.x() - gap - boxRect.x();
-            MovePageItem movePageItem(**boxIter, x);
+        if (gap <= maxGap) {
+            Box *pPrevBox = nullptr;
+
+            for (auto box : boxes) {
+                int x;
+
+                if (pPrevBox)
+                    x = pPrevBox->m_rect.x() - gap - box->m_rect.width();
+                else
+                    x = page.pageWidth() - box->m_rect.width();
+
+                MovePageItem movePageItem(*box, x);
+                pPrevBox = box;
+            }
         }
     }
 }
