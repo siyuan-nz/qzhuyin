@@ -52,7 +52,7 @@ void pageBuilder(AstNode *pRootNode, const Options &options)
         if (options.debug)
             PageDebugOutput debug(*xPage);
 
-//             pageLayout.layout(*xPage);
+        pageLayout.layout(*xPage);
         renderer.render(*xPage);
         xPage.reset(pageBuilder.nextPage());
 
