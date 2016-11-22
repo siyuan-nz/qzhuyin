@@ -43,19 +43,22 @@ void pageBuilder(AstNode *pRootNode, const Options &options)
     QFileInfo sourceFileInfo(options.source);
     QPdfWriter pdfWriter(sourceFileInfo.baseName() + ".pdf");
     PageBuilder pageBuilder(pdfWriter, *pRootNode);
+    PageRenderer renderer(pdfWriter);
     QScopedPointer<Page> xPage;
     PageLayout pageLayout;
 
-    do {
-        xPage.reset(pageBuilder.nextPage());
-        if (xPage) {
-            if (options.debug)
-                PageDebugOutput debug(*xPage);
+    xPage.reset(pageBuilder.nextPage());
+    while (xPage) {
+        if (options.debug)
+            PageDebugOutput debug(*xPage);
 
-            pageLayout.layout(*xPage);
-            renderPage(*xPage, pdfWriter);
-        }
-    } while (xPage);
+//             pageLayout.layout(*xPage);
+        renderer.render(*xPage);
+        xPage.reset(pageBuilder.nextPage());
+
+        if (xPage)
+            pdfWriter.newPage();
+    }
 }
 
 void parseOptions(const QCoreApplication &app, Options &options)
