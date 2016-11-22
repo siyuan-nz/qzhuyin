@@ -46,7 +46,7 @@ private:
         EndPage
     };
 
-    void endPage(AstNodeRef *pAstNodeRef);
+    void endPage();
     eVisitStatus fitItem(PageItem *pPageItem);
     PageItem* widestItem(const QList<PageItem *> &items);
     int layoutText(const QList<ZhChar> &text, int offset);
@@ -61,6 +61,9 @@ private:
     QList<PageItem *> m_currentColumn;
     Box *m_pCurrentBox;
     eVisitStatus m_visitStatus;
+
+    template <class T>
+    friend class Resume;
 };
 
 #endif
