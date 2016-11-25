@@ -122,6 +122,22 @@ void AstPrinter::visit(ScopeRef &astNode)
 
 void AstPrinter::visit(TextRef &astNode)
 {
-    QString message = astNode.className() + ": position = " + QString::number(astNode.m_position);
+    Text &textNode = static_cast<Text &>(astNode.m_astNode);
+    QString message = astNode.className() + ": position = " + QString::number(astNode.m_position) + ": ";
+
+    for (int i = astNode.m_position; i < textNode.m_text.count(); i++) {
+        const ZhChar &zhChar = textNode.m_text.at(i);
+        message += QString(zhChar.zhChar());
+
+        if (!zhChar.zhuYin().isEmpty()) {
+            message += '(' + zhChar.zhuYin();
+
+            if (!zhChar.tone().isNull())
+                message += zhChar.tone();
+
+            message += ") ";
+        }
+    }
+
     printLine(message);
 }

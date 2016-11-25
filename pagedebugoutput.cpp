@@ -54,7 +54,12 @@ void PageDebugOutput::visit(Box &box)
 void PageDebugOutput::visit(LineText &lineText)
 {
     QString debugMsg;
+    QString text;
     QDebug debug(&debugMsg);
-    debug << lineText.className() << lineText.m_rect;
+
+    for (const ZhChar &zhChar : lineText.m_text)
+        text += zhChar.zhChar();
+
+    debug << lineText.className() << lineText.m_rect << ':' << text;
     qDebug("%s%s", qPrintable(indent()), qPrintable(debugMsg));
 }
