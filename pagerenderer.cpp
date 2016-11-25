@@ -32,7 +32,7 @@ void PageRenderer::visit(LineText &lineText)
     int x = lineText.m_rect.x();
     int y = lineText.m_rect.y();
 
-    for (auto zhChar : lineText.m_text) {
+    for (const ZhChar &zhChar : lineText.m_text) {
         drawZhChar(x, y, zhChar);
         y += fontMetrics.lineSpacing();
     }
@@ -79,7 +79,7 @@ void PageRenderer::drawZhChar(int x, int y, const ZhChar &zhChar)
 
 void PageRenderer::drawText(int x, int y, const QString &text)
 {
-    for (auto c : text)
+    for (auto const &c : text)
     {
         m_painter.drawText(x, y, c);
         y += m_painter.fontMetrics().lineSpacing();

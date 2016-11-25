@@ -434,7 +434,7 @@ CommandStatus Qzy2Ast::zhuYin(const QString &arg)
             status.status = eCommandStatus::Warning;
             QString message("number of characters specified with \\zhuyin is more than text\n\t");
 
-            for (auto const &zhChar : pText->m_text)
+            for (const ZhChar &zhChar : pText->m_text)
                 message += zhChar.zhChar();
 
             message += "\\zhuyin{" + arg + "}";

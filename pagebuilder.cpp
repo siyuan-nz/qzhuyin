@@ -239,7 +239,9 @@ void PageBuilder::visit(ScopeRef &astNode)
     Scope &scope = static_cast<Scope &>(astNode.m_astNode);
     int &position = astNode.m_position;
 
-    for (int i = position; i < scope.m_childNodes.count(); i++) {
+    // Start at resume position + 1 as reaching here implies the child node was
+    // successfully visited, move on to the next one.
+    for (int i = position + 1; i < scope.m_childNodes.count(); i++) {
         position = i;
         scope.m_childNodes.at(i)->welcome(*this);
         if (m_visitStatus != eVisitStatus::Success) {
@@ -371,7 +373,7 @@ int PageBuilder::layoutText(const QList<ZhChar> &text, int offset)
             pLineText->m_font = currentFont;
 
             if (charsFirstLine == textLength)
-                return textLength;
+                return offset + textLength;
         } else {
             delete pLineText;
             return 0;
