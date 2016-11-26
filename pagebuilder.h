@@ -66,6 +66,7 @@ private:
 
     template <class T>
     friend class Resume;
+    friend class AlignColumn;
 };
 
 #endif

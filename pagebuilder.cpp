@@ -1,8 +1,10 @@
 #include "pagebuilder.h"
 
 #include "ast.h"
+#include "movepageitem.h"
 #include "page.h"
 #include "pageitem.h"
+#include "pageitemvisitor.h"
 
 #include <cassert>
 #include <functional>
@@ -42,6 +44,82 @@ Resume<T>::~Resume()
         m_pageBuilder.m_resumeRefs.pop();
     else
         *m_ppNodeRef = m_resumeFunc();
+}
+
+class AlignColumn : protected PageItemVisitor
+{
+public:
+    AlignColumn(PageBuilder &pageBuilder);
+
+protected:
+    void visit(Box &) override;
+    void visit(LineText &) override;
+
+private:
+    void align();
+
+    enum class eAlignMode {
+        Anchor,
+        Item
+    } m_alignMode;
+    PageBuilder &m_pageBuilder;
+    PageItem &m_anchorItem;
+    int m_anchorItemWidth;
+};
+
+AlignColumn::AlignColumn(PageBuilder& pageBuilder)
+    : m_alignMode(eAlignMode::Anchor)
+    , m_pageBuilder(pageBuilder)
+    , m_anchorItem(*pageBuilder.widestItem(m_pageBuilder.m_currentColumn))
+{
+    m_anchorItem.welcome(*this);
+    align();
+}
+
+void AlignColumn::align()
+{
+    m_alignMode = eAlignMode::Item;
+
+    for (auto item : m_pageBuilder.m_currentColumn) {
+        if (item != &m_anchorItem)
+            item->welcome(*this);
+    }
+}
+
+void AlignColumn::visit(Box &box)
+{
+    switch (m_alignMode)
+    {
+    case eAlignMode::Anchor:
+        m_anchorItemWidth = m_anchorItem.m_rect.width();
+        break;
+    case eAlignMode::Item:
+        {
+            int newX = m_anchorItem.m_rect.x() + (m_anchorItemWidth - box.m_rect.width()) / 2;
+            MovePageItem(box, newX);
+        }
+        break;
+    }
+}
+
+void AlignColumn::visit(LineText &lineText)
+{
+    const QFont &font = lineText.m_font;
+    QFontMetrics fontMetrics(font, &m_pageBuilder.m_pdfWriter);
+    int textWidth = fontMetrics.width(lineText.m_text.first().zhChar());
+
+    switch (m_alignMode)
+    {
+    case eAlignMode::Anchor:
+        m_anchorItemWidth = textWidth;
+        break;
+    case eAlignMode::Item:
+        {
+            int newX = m_anchorItem.m_rect.x() + (m_anchorItemWidth - textWidth) / 2;
+            lineText.m_rect.setX(newX);
+        }
+        break;
+    }
 }
 
 PageBuilder::PageBuilder(QPdfWriter &pdfWriter, AstNode &root)
@@ -326,6 +404,7 @@ PageBuilder::eVisitStatus PageBuilder::fitItem(PageItem *pPageItem)
         y = lastItemRect.y() + lastItemRect.height();
 
         if (y + itemRect.height() > m_xPage->bottomEdge()) {
+            AlignColumn(*this);
             m_pWidestItem = widestItem(m_currentColumn);
             m_currentColumn.clear();
             x = m_pWidestItem->m_rect.x() - itemRect.width();

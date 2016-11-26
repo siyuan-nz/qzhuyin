@@ -1,46 +1,9 @@
 #include "pagelayout.h"
+#include "movepageitem.h"
 #include "page.h"
 #include "pageitem.h"
 
 #include <QRegion>
-
-class MovePageItem : protected PageItemVisitor
-{
-public:
-    MovePageItem(PageItem &pageItem, int x);
-
-protected:
-    void visit(Box &) override;
-    void visit(LineText &) override;
-
-private:
-    void translateItem(PageItem &pageItem);
-    int m_translateX;
-};
-
-MovePageItem::MovePageItem(PageItem& pageItem, int x)
-    : m_translateX(x - pageItem.m_rect.x())
-{
-    if (m_translateX)
-        pageItem.welcome(*this);
-}
-
-void MovePageItem::translateItem(PageItem &pageItem)
-{
-    pageItem.m_rect.translate(m_translateX, 0);
-}
-
-void MovePageItem::visit(Box &box)
-{
-    translateItem(box);
-    for (auto item : box.m_enclosedItems)
-        item->welcome(*this);
-}
-
-void MovePageItem::visit(LineText &lineText)
-{
-    translateItem(lineText);
-}
 
 void PageLayout::layout(Page &page)
 {
@@ -101,7 +64,7 @@ void PageLayout::adjustGaps(Page &page, const QList<Box *> &boxes)
                 else
                     x = page.pageWidth() - box->m_rect.width();
 
-                MovePageItem movePageItem(*box, x);
+                MovePageItem(*box, x);
                 pPrevBox = box;
             }
         }
