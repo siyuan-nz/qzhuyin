@@ -25,6 +25,7 @@ protected:
     void visit(SetRightMargin &) override;
     void visit(SetTopMargin &) override;
     void visit(Text &) override;
+    void visit(NewParagraphRef &) override;
     void visit(ScopeRef &) override;
     void visit(TextRef &) override;
 

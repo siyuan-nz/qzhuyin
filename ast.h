@@ -134,6 +134,14 @@ public:
     AstNode &m_astNode;
 };
 
+class NewParagraphRef : public AstNodeRef
+{
+public:
+    using AstNodeRef::AstNodeRef;
+    QString className() const override;
+    void welcome(AstVisitor &visitor) override;
+};
+
 class ScopeRef : public AstNodeRef
 {
 public:

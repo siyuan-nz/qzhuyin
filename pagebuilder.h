@@ -36,6 +36,7 @@ protected:
     void visit(SetRightMargin &) override;
     void visit(SetTopMargin &) override;
     void visit(Text &) override;
+    void visit(NewParagraphRef &) override;
     void visit(ScopeRef &) override;
     void visit(TextRef &) override;
 
@@ -46,6 +47,7 @@ private:
         EndPage
     };
 
+    void newParagraph();
     void endPage();
     eVisitStatus fitItem(PageItem *pPageItem);
     PageItem* widestItem(const QList<PageItem *> &items);

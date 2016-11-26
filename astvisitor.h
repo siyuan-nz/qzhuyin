@@ -16,6 +16,7 @@ class SetLeftMargin;
 class SetRightMargin;
 class SetTopMargin;
 class Text;
+class NewParagraphRef;
 class ScopeRef;
 class TextRef;
 
@@ -35,6 +36,7 @@ public:
     virtual void visit(SetRightMargin &) { qWarning("visit(SetRightMargin &) unimplemented"); }
     virtual void visit(SetTopMargin &) { qWarning("visit(SetTopMargin &) unimplemented"); }
     virtual void visit(Text &) { qWarning("visit(Text &) unimplemented"); }
+    virtual void visit(NewParagraphRef &) { qWarning("visit(NewParagraphRef &) unimplemented"); }
     virtual void visit(ScopeRef &) { qWarning("visit(ScopeRef &) unimplemented"); }
     virtual void visit(TextRef &) { qWarning("visit(TextRef &) unimplemented"); }
 };
