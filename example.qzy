@@ -3,14 +3,16 @@
 \setleftmargin{20}
 \setrightmargin{20}
 \setfont{文鼎ＰＬ新中楷}
-\setfontsize{32}
+\setfontsize{24}
 
+{
+\setfontsize{32}
 鄭伯克段于鄢\zhuyin{ㄓㄥˋ ㄅㄛˊ ㄎㄜˋ ㄉㄨㄢˋ ㄩˊ ㄧㄢ}
 \setfontsize{16}
 周文\zhuyin{ㄓㄡ ㄨㄣˊ} 左傳\zhuyin{ㄗㄨㄛˇ ㄓㄨㄢˋ}
+}
 
 \hspace{1}
-\setfontsize{24}
 
 初\zhuyin{ㄔㄨ}，鄭武公娶于申\zhuyin{ㄓㄥˋ ㄨˇ ㄍㄨㄥ ㄑㄩˇ ㄩˊ ㄕㄣ}，曰武姜\zhuyin{ㄩㄝ ㄨˇ ㄐㄧㄤ}，生莊公及共叔段\zhuyin{ㄕㄥ ㄓㄨㄤ ㄍㄨㄥ ㄐㄧˊ ㄍㄨㄥ ㄕㄨˊ ㄉㄨㄢˋ}。莊公寤生\zhuyin{ㄓㄨㄤ ㄍㄨㄥ ㄨˋ ㄕㄥ}，驚姜氏\zhuyin{ㄐㄧㄥ ㄐㄧㄤ ㄕˋ}，故名曰寤生\zhuyin{ㄍㄨˋ ㄇㄧㄥˊ ㄩㄝ ㄨˋ ㄕㄥ}，遂惡之\zhuyin{ㄙㄨㄟˋ ㄨˋ ㄓ}。愛共叔段\zhuyin{ㄞˋ ㄍㄨㄥ ㄕㄨˊ ㄉㄨㄢˋ}，欲立之\zhuyin{ㄩˋ ㄌㄧˋ ㄓ}。亟請於武公\zhuyin{ㄑㄧˋ ㄑㄧㄥˇ ㄩˊ ㄨˇ ㄍㄨㄥ}，公弗許\zhuyin{ㄍㄨㄥ ㄈㄨˊ ㄒㄩˇ}。
 
