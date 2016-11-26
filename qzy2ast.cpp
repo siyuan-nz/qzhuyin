@@ -53,16 +53,17 @@ AstNode* Qzy2Ast::parse()
     QByteArray buffer;
     NewParagraph *pParagraph = nullptr;
     Text *pCurrentText = nullptr;
-    VSpace *pVSpace = nullptr;
+    Text *pPrevText = nullptr;
     unsigned int line = 1;
     unsigned int column = 1;
     unsigned int lineFeeds = 0;
     bool escaped = false;
     QString commandName;
     QString commandArguments;
-    auto addNonTextNode = [&pCurrentText, this](AstNode *pNode) {
+    auto addNonTextNode = [&pCurrentText, &pPrevText, this](AstNode *pNode) {
         if (pNode)
             m_scopeStack.top()->m_childNodes.append(pNode);
+        pPrevText = pCurrentText;
         pCurrentText = nullptr;
     };
     auto onWarning = [&line, &column, this](const QString &msg) {
@@ -182,10 +183,11 @@ AstNode* Qzy2Ast::parse()
                     if (c == '\n')
                         lineFeeds++;
                     else if (!c.isSpace()) {
-                        if (lineFeeds > 1)
+                        if (lineFeeds > 1) {
                             pParagraph = nullptr;
-                        else if (pCurrentText) {
-                            pVSpace = new VSpace;
+                            pPrevText = nullptr;
+                        } else if (pCurrentText || pPrevText) {
+                            VSpace *pVSpace = new VSpace;
                             pVSpace->m_space = 1;
                             addNonTextNode(pVSpace);
                         }
@@ -203,16 +205,19 @@ AstNode* Qzy2Ast::parse()
                             m_parseState = eParseState::Comment;
                             break;
                         } else if (c == '\\') {
+                            pPrevText = pCurrentText;
                             pCurrentText = nullptr;
                             m_parseState = eParseState::Escape;
                             break;
                         } else if (c == '{') {
+                            pPrevText = pCurrentText;
                             pCurrentText = nullptr;
                             Scope *pScope = new Scope;
                             addNonTextNode(pScope);
                             m_scopeStack.push(pScope);
                             break;
                         } else if (c == '}') {
+                            pPrevText = pCurrentText;
                             pCurrentText = nullptr;
                             m_scopeStack.pop();
 
@@ -437,7 +442,7 @@ CommandStatus Qzy2Ast::zhuYin(const QString &arg)
             for (const ZhChar &zhChar : pText->m_text)
                 message += zhChar.zhChar();
 
-            message += "\\zhuyin{" + arg + "}";
+            message += "\\zhuyin{" + arg + '}';
             appendWarningMessage(status, message);
         }
     } else {

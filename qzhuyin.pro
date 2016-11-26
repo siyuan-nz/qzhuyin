@@ -11,6 +11,7 @@ QT += gui
 HEADERS += ast.h \
            astprinter.h \
            astvisitor.h \
+           movepageitem.h \
            page.h \
            pagebuilder.h \
            pagedebugoutput.h \
@@ -22,6 +23,7 @@ HEADERS += ast.h \
            zhchar.h
 SOURCES += ast.cpp \
            astprinter.cpp \
+           movepageitem.cpp \
            page.cpp \
            pagebuilder.cpp \
            pagedebugoutput.cpp \
