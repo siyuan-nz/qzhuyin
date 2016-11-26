@@ -107,9 +107,16 @@ void Text::welcome(AstVisitor &visitor)
     visitor.visit(*this);
 }
 
-AstNodeRef::AstNodeRef(AstNode& ref)
+AstNodeRef::AstNodeRef(AstNode &ref)
     : m_astNode(ref)
 {
+}
+
+CLASSNAME(NewParagraphRef)
+
+void NewParagraphRef::welcome(AstVisitor &visitor)
+{
+    visitor.visit(*this);
 }
 
 ScopeRef::ScopeRef(Scope& scope, int position)
@@ -120,7 +127,7 @@ ScopeRef::ScopeRef(Scope& scope, int position)
 
 CLASSNAME(ScopeRef)
 
-void ScopeRef::welcome(AstVisitor& visitor)
+void ScopeRef::welcome(AstVisitor &visitor)
 {
     visitor.visit(*this);
 }
@@ -133,7 +140,7 @@ TextRef::TextRef(Text& text, int position)
 
 CLASSNAME(TextRef)
 
-void TextRef::welcome(AstVisitor& visitor)
+void TextRef::welcome(AstVisitor &visitor)
 {
     visitor.visit(*this);
 }

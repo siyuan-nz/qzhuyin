@@ -114,6 +114,11 @@ void AstPrinter::visit(Text &astNode)
     printLine(message);
 }
 
+void AstPrinter::visit(NewParagraphRef &astNode)
+{
+    printLine(astNode.className());
+}
+
 void AstPrinter::visit(ScopeRef &astNode)
 {
     QString message = astNode.className() + ": position = " + QString::number(astNode.m_position);

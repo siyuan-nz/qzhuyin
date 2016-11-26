@@ -107,7 +107,7 @@ void PageBuilder::visit(VSpace &astNode)
     QFont currentFont = m_fontStack.top();
     QFontMetrics fontMetrics(currentFont, &m_pdfWriter);
     Box *pBox = new Box;
-    pBox->m_rect.setWidth(0);
+    pBox->m_rect.setWidth(fontMetrics.width(QChar(0x2000)));
     pBox->m_rect.setHeight(fontMetrics.lineSpacing() * astNode.m_space);
     m_visitStatus = fitItem(pBox);
 
@@ -142,17 +142,14 @@ void PageBuilder::visit(NewPage &)
     m_visitStatus = eVisitStatus::EndPage;
 }
 
-void PageBuilder::visit(NewParagraph &)
+void PageBuilder::visit(NewParagraph &astNode)
 {
-    if (m_pCurrentBox) {
-        m_pCurrentBox = nullptr;
-        NewLine newLine;
-        visit(newLine);
-    }
+    Resume<NewParagraphRef *> resume(*this,
+                                     [&astNode]() -> NewParagraphRef* {
+        return new NewParagraphRef(astNode);
+    });
 
-    VSpace vSpace;
-    vSpace.m_space = 2;
-    visit(vSpace);
+    newParagraph();
 }
 
 void PageBuilder::visit(Scope &astNode)
@@ -234,6 +231,11 @@ void PageBuilder::visit(Text &astNode)
         endPage();
 }
 
+void PageBuilder::visit(NewParagraphRef &)
+{
+    newParagraph();
+}
+
 void PageBuilder::visit(ScopeRef &astNode)
 {
     Scope &scope = static_cast<Scope &>(astNode.m_astNode);
@@ -272,6 +274,19 @@ void PageBuilder::visit(TextRef &astNode)
     if (m_visitStatus != eVisitStatus::Success) {
         endPage();
     }
+}
+
+void PageBuilder::newParagraph()
+{
+    if (m_pCurrentBox) {
+        m_pCurrentBox = nullptr;
+        NewLine newLine;
+        visit(newLine);
+    }
+
+    VSpace vSpace;
+    vSpace.m_space = 2;
+    visit(vSpace);
 }
 
 void PageBuilder::endPage()
