@@ -64,17 +64,17 @@ void pageBuilder(AstNode *pRootNode, const Options &options)
 void parseOptions(const QCoreApplication &app, Options &options)
 {
     QCommandLineParser parser;
-    parser.setApplicationDescription("Chinese typsetting tool");
+    parser.setApplicationDescription(QStringLiteral("Chinese typsetting tool"));
     parser.addHelpOption();
     parser.addVersionOption();
-    parser.addPositionalArgument("source", QCoreApplication::translate("main", "Source file."));
+    parser.addPositionalArgument(QStringLiteral("source"), QCoreApplication::translate("main", "Source file."));
     parser.addOptions({
-        {{"d", "debug"},
+        {{QStringLiteral("d"), QStringLiteral("debug")},
             QCoreApplication::translate("main", "Debug output.")},
     });
     parser.process(app);
 
-    options.debug = parser.isSet("debug");
+    options.debug = parser.isSet(QStringLiteral("debug"));
     QStringList positionalArguments = parser.positionalArguments();
     if (positionalArguments.isEmpty())
         parser.showHelp(EINVAL);
@@ -85,8 +85,8 @@ void parseOptions(const QCoreApplication &app, Options &options)
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
-    QCoreApplication::setApplicationName("qzhuyin");
-    QCoreApplication::setApplicationVersion("0.9");
+    QCoreApplication::setApplicationName(QStringLiteral("qzhuyin"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("0.9"));
 
     Options options;
     parseOptions(app, options);

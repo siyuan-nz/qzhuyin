@@ -10,7 +10,7 @@ typedef QHash<QChar, QString> ZhuYinMap;
 
 void loadDb(ZhuYinMap &map)
 {
-    QFile zhuYinDbFile(":zhuyin_db_sorted.txt");
+    QFile zhuYinDbFile(QStringLiteral(":zhuyin_db_sorted.txt"));
 
     if (!zhuYinDbFile.open(QIODevice::ReadOnly | QIODevice::Text))
         qFatal("Failed to open DB");
@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
 
             if (writeOut || i >= (stringBuffer.length() - 1)) {
                 if (!zhuYinList.isEmpty())
-                    text += "\\zhuyin{" + zhuYinList.join(' ') + '}';
+                    text += QStringLiteral("\\zhuyin{") + zhuYinList.join(' ') + '}';
 
                 std::cout << qPrintable(text);
                 text.clear();

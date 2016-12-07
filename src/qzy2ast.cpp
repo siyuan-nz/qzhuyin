@@ -24,16 +24,16 @@ CommandStatus & CommandStatus::operator=(CommandStatus && other)
 
 Qzy2Ast::Qzy2Ast(const QString &fileName)
     : m_cCmd2Func{
-          { "hspace", std::bind(&Qzy2Ast::hSpace, this, _1) },
-          { "newpage", std::bind(&Qzy2Ast::newPage, this, _1) },
-          { "setbottommargin", std::bind(&Qzy2Ast::setBottomMargin, this, _1) },
-          { "setfont", std::bind(&Qzy2Ast::setFont, this, _1) },
-          { "setfontsize", std::bind(&Qzy2Ast::setFontSize, this, _1) },
-          { "setleftmargin", std::bind(&Qzy2Ast::setLeftMargin, this, _1) },
-          { "setrightmargin", std::bind(&Qzy2Ast::setRightMargin, this, _1) },
-          { "settopmargin", std::bind(&Qzy2Ast::setTopMargin, this, _1) },
-          { "vspace", std::bind(&Qzy2Ast::vSpace, this, _1) },
-          { "zhuyin", std::bind(&Qzy2Ast::zhuYin, this, _1) },
+          { QStringLiteral("hspace"), std::bind(&Qzy2Ast::hSpace, this, _1) },
+          { QStringLiteral("newpage"), std::bind(&Qzy2Ast::newPage, this, _1) },
+          { QStringLiteral("setbottommargin"), std::bind(&Qzy2Ast::setBottomMargin, this, _1) },
+          { QStringLiteral("setfont"), std::bind(&Qzy2Ast::setFont, this, _1) },
+          { QStringLiteral("setfontsize"), std::bind(&Qzy2Ast::setFontSize, this, _1) },
+          { QStringLiteral("setleftmargin"), std::bind(&Qzy2Ast::setLeftMargin, this, _1) },
+          { QStringLiteral("setrightmargin"), std::bind(&Qzy2Ast::setRightMargin, this, _1) },
+          { QStringLiteral("settopmargin"), std::bind(&Qzy2Ast::setTopMargin, this, _1) },
+          { QStringLiteral("vspace"), std::bind(&Qzy2Ast::vSpace, this, _1) },
+          { QStringLiteral("zhuyin"), std::bind(&Qzy2Ast::zhuYin, this, _1) },
       }
     , m_fileName(fileName)
 {
@@ -107,7 +107,7 @@ AstNode* Qzy2Ast::parse()
                     {
                         auto funcIter = m_cCmd2Func.find(commandName);
                         if (funcIter == m_cCmd2Func.end())
-                            onError(QString("unknown command ") + commandName);
+                            onError(QStringLiteral("unknown command ") + commandName);
 
                         commandArguments = commandArguments.simplified();
                         CommandStatus &&status = (*funcIter)(commandArguments);
@@ -147,14 +147,14 @@ AstNode* Qzy2Ast::parse()
                     } else if (c == '\n') {
                         lineFeeds++;
                         if (lineFeeds > 1)
-                            onError("a new paragraph started before the command ends");
+                            onError(QStringLiteral("a new paragraph started before the command ends"));
                     } else if (!c.isSpace())
-                        onError("command ended prematurely");
+                        onError(QStringLiteral("command ended prematurely"));
                     break;
 
                 case eParseState::CommandOptions:
                 case eParseState::CommandOptionsEnd:
-                    onError("command options are unsupported yet");
+                    onError(QStringLiteral("command options are unsupported yet"));
                     break;
 
                 case eParseState::Comment:
@@ -164,7 +164,7 @@ AstNode* Qzy2Ast::parse()
 
                 case eParseState::Escape:
                     if (c.isSpace())
-                        onError("incomplete escape sequence");
+                        onError(QStringLiteral("incomplete escape sequence"));
                     else if (c == '\\') {
                         addNonTextNode(new NewLine);
                         m_parseState = eParseState::Text;
@@ -222,7 +222,7 @@ AstNode* Qzy2Ast::parse()
                             m_scopeStack.pop();
 
                             if (m_scopeStack.isEmpty())
-                                onError("unmatched end of scope");
+                                onError(QStringLiteral("unmatched end of scope"));
 
                             addNonTextNode(nullptr);
                             break;
@@ -271,12 +271,12 @@ int Qzy2Ast::parseSingleIntArg(CommandStatus &status, const QString &commandName
 
     if (!ok || failPositive) {
         status.status = eCommandStatus::Error;
-        status.message = QString("error parsing argument for \"")
+        status.message = QStringLiteral("error parsing argument for \"")
                        + '\\' + commandName
-                       + '{' + arg + "}\"";
+                       + '{' + arg + QStringLiteral("}\"");
 
         if (failPositive)
-            status.message += ": argument must be a positive integer";
+            status.message += QStringLiteral(": argument must be a positive integer");
     }
 
     return value;
@@ -295,7 +295,7 @@ CommandStatus Qzy2Ast::hSpace(const QString &arg)
 {
     CommandStatus status;
 
-    int space = parseSingleIntArg(status, "hspace", arg);
+    int space = parseSingleIntArg(status, QStringLiteral("hspace"), arg);
     if (status.status == eCommandStatus::Success) {
         HSpace *pHSpace = new HSpace;
         pHSpace->m_space = space;
@@ -309,7 +309,7 @@ CommandStatus Qzy2Ast::vSpace(const QString &arg)
 {
     CommandStatus status;
 
-    int space = parseSingleIntArg(status, "vspace", arg);
+    int space = parseSingleIntArg(status, QStringLiteral("vspace"), arg);
     if (status.status == eCommandStatus::Success) {
         VSpace *pVSpace = new VSpace;
         pVSpace->m_space = space;
@@ -331,7 +331,7 @@ CommandStatus Qzy2Ast::setBottomMargin(const QString &arg)
 {
     CommandStatus status;
 
-    int mm = parseSingleIntArg(status, "setbottommargin", arg);
+    int mm = parseSingleIntArg(status, QStringLiteral("setbottommargin"), arg);
     if (status.status == eCommandStatus::Success) {
         SetBottomMargin *pMargin = new SetBottomMargin;
         pMargin->m_mm = mm;
@@ -345,7 +345,7 @@ CommandStatus Qzy2Ast::setLeftMargin(const QString &arg)
 {
     CommandStatus status;
 
-    int mm = parseSingleIntArg(status, "setleftmargin", arg);
+    int mm = parseSingleIntArg(status, QStringLiteral("setleftmargin"), arg);
     if (status.status == eCommandStatus::Success) {
         SetLeftMargin *pMargin = new SetLeftMargin;
         pMargin->m_mm = mm;
@@ -359,7 +359,7 @@ CommandStatus Qzy2Ast::setRightMargin(const QString &arg)
 {
     CommandStatus status;
 
-    int mm = parseSingleIntArg(status, "setrightmargin", arg);
+    int mm = parseSingleIntArg(status, QStringLiteral("setrightmargin"), arg);
     if (status.status == eCommandStatus::Success) {
         SetRightMargin *pMargin = new SetRightMargin;
         pMargin->m_mm = mm;
@@ -373,7 +373,7 @@ CommandStatus Qzy2Ast::setTopMargin(const QString &arg)
 {
     CommandStatus status;
 
-    int mm = parseSingleIntArg(status, "settopmargin", arg);
+    int mm = parseSingleIntArg(status, QStringLiteral("settopmargin"), arg);
     if (status.status == eCommandStatus::Success) {
         SetTopMargin *pMargin = new SetTopMargin;
         pMargin->m_mm = mm;
@@ -397,7 +397,7 @@ CommandStatus Qzy2Ast::setFontSize(const QString &arg)
 {
     CommandStatus status;
 
-    int pointSize = parseSingleIntArg(status, "setfontsize", arg, true);
+    int pointSize = parseSingleIntArg(status, QStringLiteral("setfontsize"), arg, true);
     if (status.status == eCommandStatus::Success) {
         SetFontSize *pSetFontSize = new SetFontSize;
         pSetFontSize->m_pointSize = pointSize;
@@ -426,8 +426,8 @@ CommandStatus Qzy2Ast::zhuYin(const QString &arg)
             } else {
                 textIter->setZhuYin(*zhuYinIter);
                 if (textIter->zhuYin().length() > 3) {
-                    QString message = QString("invalid zhu yin for character \"")
-                                    + textIter->zhChar() + "\" \"" + *zhuYinIter + '\"';
+                    QString message = QStringLiteral("invalid zhu yin for character \"")
+                                    + textIter->zhChar() + QStringLiteral("\" \"") + *zhuYinIter + '\"';
                     appendWarningMessage(status, message);
                 }
             }
@@ -437,17 +437,17 @@ CommandStatus Qzy2Ast::zhuYin(const QString &arg)
 
         if (prematureTerminate) {
             status.status = eCommandStatus::Warning;
-            QString message("number of characters specified with \\zhuyin is more than text\n\t");
+            QString message = QStringLiteral("number of characters specified with \\zhuyin is more than text\n\t");
 
             for (const ZhChar &zhChar : pText->m_text)
                 message += zhChar.zhChar();
 
-            message += "\\zhuyin{" + arg + '}';
+            message += QStringLiteral("\\zhuyin{") + arg + '}';
             appendWarningMessage(status, message);
         }
     } else {
         status.status = eCommandStatus::Warning;
-        status.message = "\\zhuyin{} must be specified immediately after text";
+        status.message = QStringLiteral("\\zhuyin{} must be specified immediately after text");
     }
 
     return status;

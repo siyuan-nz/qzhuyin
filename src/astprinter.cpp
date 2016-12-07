@@ -22,13 +22,13 @@ void AstPrinter::printLine(const QString &message)
 
 void AstPrinter::visit(HSpace &astNode)
 {
-    QString message = astNode.className() + ": space = " + QString::number(astNode.m_space);
+    QString message = astNode.className() + QStringLiteral(": space = ") + QString::number(astNode.m_space);
     printLine(message);
 }
 
 void AstPrinter::visit(VSpace &astNode)
 {
-    QString message = astNode.className() + ": space = " + QString::number(astNode.m_space);
+    QString message = astNode.className() + QStringLiteral(": space = ") + QString::number(astNode.m_space);
     printLine(message);
 }
 
@@ -60,43 +60,43 @@ void AstPrinter::visit(Scope &astNode)
 
 void AstPrinter::visit(SetBottomMargin &astNode)
 {
-    QString message = astNode.className() + ": margin = " + QString::number(astNode.m_mm) + "mm";
+    QString message = astNode.className() + QStringLiteral(": margin = ") + QString::number(astNode.m_mm) + QStringLiteral("mm");
     printLine(message);
 }
 
 void AstPrinter::visit(SetLeftMargin &astNode)
 {
-    QString message = astNode.className() + ": margin = " + QString::number(astNode.m_mm) + "mm";
+    QString message = astNode.className() + QStringLiteral(": margin = ") + QString::number(astNode.m_mm) + QStringLiteral("mm");
     printLine(message);
 }
 
 void AstPrinter::visit(SetRightMargin &astNode)
 {
-    QString message = astNode.className() + ": margin = " + QString::number(astNode.m_mm) + "mm";
+    QString message = astNode.className() + QStringLiteral(": margin = ") + QString::number(astNode.m_mm) + QStringLiteral("mm");
     printLine(message);
 }
 
 void AstPrinter::visit(SetTopMargin &astNode)
 {
-    QString message = astNode.className() + ": margin = " + QString::number(astNode.m_mm) + "mm";
+    QString message = astNode.className() + QStringLiteral(": margin = ") + QString::number(astNode.m_mm) + QStringLiteral("mm");
     printLine(message);
 }
 
 void AstPrinter::visit(SetFont &astNode)
 {
-    QString message = astNode.className() + ": font = " + astNode.m_family;
+    QString message = astNode.className() + QStringLiteral(": font = ") + astNode.m_family;
     printLine(message);
 }
 
 void AstPrinter::visit(SetFontSize &astNode)
 {
-    QString message = astNode.className() + ": size = " + QString::number(astNode.m_pointSize) + " pt";
+    QString message = astNode.className() + QStringLiteral(": size = ") + QString::number(astNode.m_pointSize) + QStringLiteral(" pt");
     printLine(message);
 }
 
 void AstPrinter::visit(Text &astNode)
 {
-    QString message = astNode.className() + ": ";
+    QString message = astNode.className() + QStringLiteral(": ");
 
     for (const ZhChar &zhChar : astNode.m_text) {
         message += QString(zhChar.zhChar());
@@ -107,7 +107,7 @@ void AstPrinter::visit(Text &astNode)
             if (!zhChar.tone().isNull())
                 message += zhChar.tone();
 
-            message += ") ";
+            message += QStringLiteral(") ");
         }
     }
 
@@ -121,14 +121,14 @@ void AstPrinter::visit(NewParagraphRef &astNode)
 
 void AstPrinter::visit(ScopeRef &astNode)
 {
-    QString message = astNode.className() + ": position = " + QString::number(astNode.m_position);
+    QString message = astNode.className() + QStringLiteral(": position = ") + QString::number(astNode.m_position);
     printLine(message);
 }
 
 void AstPrinter::visit(TextRef &astNode)
 {
     Text &textNode = static_cast<Text &>(astNode.m_astNode);
-    QString message = astNode.className() + ": position = " + QString::number(astNode.m_position) + ": ";
+    QString message = astNode.className() + QStringLiteral(": position = ") + QString::number(astNode.m_position) + QStringLiteral(": ");
 
     for (int i = astNode.m_position; i < textNode.m_text.count(); i++) {
         const ZhChar &zhChar = textNode.m_text.at(i);
@@ -140,7 +140,7 @@ void AstPrinter::visit(TextRef &astNode)
             if (!zhChar.tone().isNull())
                 message += zhChar.tone();
 
-            message += ") ";
+            message += QStringLiteral(") ");
         }
     }
 
