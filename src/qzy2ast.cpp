@@ -2,6 +2,7 @@
 #include "ast.h"
 
 #include <QFile>
+#include <QTextStream>
 
 using namespace std::placeholders;
 
@@ -50,7 +51,8 @@ AstNode* Qzy2Ast::parse()
 
     m_scopeStack.push(new Scope);
 
-    QByteArray buffer;
+    QTextStream textStream(&qzyFile);
+    QString buffer;
     NewParagraph *pParagraph = nullptr;
     Text *pCurrentText = nullptr;
     Text *pPrevText = nullptr;
@@ -73,10 +75,8 @@ AstNode* Qzy2Ast::parse()
         qFatal("%s:%u,%u: error: %s", qPrintable(m_fileName), line, column, qPrintable(msg));
     };
 
-    while (!(buffer = qzyFile.read(4096)).isEmpty()) {
-        QString stringBuffer = QString::fromUtf8(buffer);
-
-        for (auto c : stringBuffer) {
+    while (!(buffer = textStream.read(4096)).isEmpty()) {
+        for (auto c : buffer) {
             column++;
 
             if (c == '\n') {
