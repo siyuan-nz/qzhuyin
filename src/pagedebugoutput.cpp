@@ -51,6 +51,14 @@ void PageDebugOutput::visit(Box &box)
     m_indentLevel--;
 }
 
+void PageDebugOutput::visit(LabelText &labelText)
+{
+    QString debugMsg;
+    QDebug debug(&debugMsg);
+    debug << labelText.className() << labelText.m_rect << ':' << labelText.m_text << ',' << labelText.m_font;
+    qDebug("%s%s", qPrintable(indent()), qPrintable(debugMsg));
+}
+
 void PageDebugOutput::visit(LineText &lineText)
 {
     QString debugMsg;

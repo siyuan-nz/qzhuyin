@@ -20,6 +20,11 @@ void MovePageItem::visit(Box &box)
         item->welcome(*this);
 }
 
+void MovePageItem::visit(LabelText &labelText)
+{
+    translateItem(labelText);
+}
+
 void MovePageItem::visit(LineText &lineText)
 {
     translateItem(lineText);

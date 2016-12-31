@@ -24,6 +24,20 @@ void VSpace::welcome(AstVisitor &visitor)
     visitor.visit(*this);
 }
 
+CLASSNAME(Label)
+
+void Label::welcome(AstVisitor& visitor)
+{
+    visitor.visit(*this);
+}
+
+CLASSNAME(Ref)
+
+void Ref::welcome(AstVisitor& visitor)
+{
+    visitor.visit(*this);
+}
+
 CLASSNAME(NewLine)
 
 void NewLine::welcome(AstVisitor &visitor)

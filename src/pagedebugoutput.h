@@ -16,6 +16,7 @@ public:
 
 protected:
     void visit(Box &) override;
+    void visit(LabelText &) override;
     void visit(LineText &) override;
 
 private:

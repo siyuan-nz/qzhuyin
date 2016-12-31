@@ -28,6 +28,16 @@ public:
     QList<PageItem *> m_enclosedItems;
 };
 
+class LabelText : public PageItem
+{
+public:
+    QString className() const override;
+    void welcome(PageItemVisitor &visitor) override;
+
+    QString m_text;
+    QFont m_font;
+};
+
 class LineText : public PageItem
 {
 public:

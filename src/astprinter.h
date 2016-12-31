@@ -14,6 +14,8 @@ public:
 protected:
     void visit(HSpace &) override;
     void visit(VSpace &) override;
+    void visit(Label &) override;
+    void visit(Ref &) override;
     void visit(NewLine &) override;
     void visit(NewPage &) override;
     void visit(NewParagraph &) override;
