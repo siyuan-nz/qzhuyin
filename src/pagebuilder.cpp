@@ -12,6 +12,19 @@
 #include <QFontMetrics>
 #include <QPdfWriter>
 
+const QHash<QChar, QChar> g_cZhNumHash = {
+    { '0', 0x3007 },
+    { '1', 0x4E00 },
+    { '2', 0x4E8C },
+    { '3', 0x4E09 },
+    { '4', 0x56DB },
+    { '5', 0x4E94 },
+    { '6', 0x516D },
+    { '7', 0x4E03 },
+    { '8', 0x516B },
+    { '9', 0x4E5D }
+};
+
 // A helper class for managing the resume stack of PageBuilder
 template <class T>
 class Resume
@@ -53,6 +66,7 @@ public:
 
 protected:
     void visit(Box &) override;
+    void visit(LabelText &) override;
     void visit(LineText &) override;
 
 private:
@@ -72,6 +86,9 @@ AlignColumn::AlignColumn(PageBuilder& pageBuilder)
     , m_pageBuilder(pageBuilder)
     , m_anchorItem(*pageBuilder.widestItem(m_pageBuilder.m_currentColumn))
 {
+    if (m_pageBuilder.m_currentColumn.isEmpty())
+        return;
+
     m_anchorItem.welcome(*this);
     align();
 }
@@ -102,6 +119,24 @@ void AlignColumn::visit(Box &box)
     }
 }
 
+void AlignColumn::visit(LabelText &labelText)
+{
+    int rectWidth = labelText.m_rect.width();
+
+    switch (m_alignMode)
+    {
+    case eAlignMode::Anchor:
+        m_anchorItemWidth = rectWidth;
+        break;
+    case eAlignMode::Item:
+        {
+            int newX = m_anchorItem.m_rect.x() + (m_anchorItemWidth - rectWidth) / 2;
+            labelText.m_rect.moveLeft(newX);
+        }
+        break;
+    }
+}
+
 void AlignColumn::visit(LineText &lineText)
 {
     const QFont &font = lineText.m_font;
@@ -116,7 +151,7 @@ void AlignColumn::visit(LineText &lineText)
     case eAlignMode::Item:
         {
             int newX = m_anchorItem.m_rect.x() + (m_anchorItemWidth - textWidth) / 2;
-            lineText.m_rect.setX(newX);
+            lineText.m_rect.moveLeft(newX);
         }
         break;
     }
@@ -156,6 +191,9 @@ Page* PageBuilder::nextPage()
         }
     }
 
+    if (m_visitStatus == eVisitStatus::Success)
+        AlignColumn(*this);
+
     Page *pPage = m_xPage.take();
     if (!m_resumeRefs.isEmpty()) {
         m_xPage.reset(new Page(*pPage));
@@ -189,15 +227,85 @@ void PageBuilder::visit(VSpace &astNode)
     pBox->m_rect.setHeight(fontMetrics.lineSpacing() * astNode.m_space);
     m_visitStatus = fitItem(pBox);
 
+    if (m_visitStatus == eVisitStatus::Success) {
+        if (m_pCurrentBox == nullptr) {
+            m_pCurrentBox = new Box;
+            m_xPage->addPageItem(m_pCurrentBox);
+        }
+
+        m_pCurrentBox->m_enclosedItems.append(pBox);
+    } else
+        delete pBox;
+}
+
+void PageBuilder::visit(Label &astNode)
+{
+    QFont currentFont = m_fontStack.top();
+    QFontMetrics fontMetrics(currentFont, &m_pdfWriter);
+    QString numString = QString::number(astNode.m_id);
+    int textLength = numString.length() + 2; // +2 to accomodate parenthese
+    float pointSizeF = currentFont.pointSize() / textLength;
+
+    QString labelStr = QStringLiteral("︵");
+    for (int i = 0; i < numString.length(); i++)
+        labelStr += g_cZhNumHash.value(numString.at(i), QChar(0xFF1F));
+    labelStr += QStringLiteral("︶");
+    astNode.m_label = labelStr;
+
+    // Get the width of the main text, otherwise the label might fit the
+    // column but not the main text that follows.
+    int lineWidth = fontMetrics.width(labelStr.at(0));
+    LabelText *pLabelText = new LabelText;
+    // A label should always take up the area of a single character
+    pLabelText->m_rect.setWidth(lineWidth);
+    pLabelText->m_rect.setHeight(fontMetrics.lineSpacing());
+    pLabelText->m_text = labelStr;
+    pLabelText->m_font = currentFont;
+    pLabelText->m_font.setPointSizeF(pointSizeF);
+    m_visitStatus = fitItem(pLabelText);
 
     if (m_visitStatus == eVisitStatus::Success) {
         if (m_pCurrentBox == nullptr) {
             m_pCurrentBox = new Box;
-            m_pCurrentBox->m_enclosedItems.append(pBox);
             m_xPage->addPageItem(m_pCurrentBox);
         }
+
+        m_pCurrentBox->m_enclosedItems.append(pLabelText);
     } else
-        delete pBox;
+        delete pLabelText;
+}
+
+void PageBuilder::visit(Ref &astNode)
+{
+    QFont currentFont = m_fontStack.top();
+    QFontMetrics fontMetrics(currentFont, &m_pdfWriter);
+    LabelText *pLabelText = new LabelText;
+
+    if (astNode.m_labelNode == nullptr)
+        qFatal("PageBuilder::visit(Ref&): no link to its corresponding label");
+
+    QString labelStr = astNode.m_labelNode->m_label;
+    // Get the width of the main text, otherwise the ref might fit the column
+    // but not the main text that follows.
+    int lineWidth = fontMetrics.width(labelStr.at(0));
+    float pointSizeF = currentFont.pointSize() / labelStr.length();
+    // A label should always take up the area of a single character
+    pLabelText->m_rect.setWidth(lineWidth);
+    pLabelText->m_rect.setHeight(fontMetrics.lineSpacing());
+    pLabelText->m_text = labelStr;
+    pLabelText->m_font = currentFont;
+    pLabelText->m_font.setPointSizeF(pointSizeF);
+    m_visitStatus = fitItem(pLabelText);
+
+    if (m_visitStatus == eVisitStatus::Success) {
+        if (m_pCurrentBox == nullptr) {
+            m_pCurrentBox = new Box;
+            m_xPage->addPageItem(m_pCurrentBox);
+        }
+
+        m_pCurrentBox->m_enclosedItems.append(pLabelText);
+    } else
+        delete pLabelText;
 }
 
 void PageBuilder::visit(NewLine &)
@@ -205,6 +313,7 @@ void PageBuilder::visit(NewLine &)
     m_pWidestItem = widestItem(m_currentColumn);
 
     if (m_pWidestItem) {
+        AlignColumn(*this);
         m_currentColumn.clear();
         m_visitStatus = eVisitStatus::Success;
     } else {
@@ -222,11 +331,13 @@ void PageBuilder::visit(NewPage &)
 
 void PageBuilder::visit(NewParagraph &astNode)
 {
+#if 0
+    // TODO: Remove paragraph ref?
     Resume<NewParagraphRef *> resume(*this,
                                      [&astNode]() -> NewParagraphRef* {
         return new NewParagraphRef(astNode);
     });
-
+#endif
     newParagraph();
 }
 
@@ -319,9 +430,12 @@ void PageBuilder::visit(ScopeRef &astNode)
     Scope &scope = static_cast<Scope &>(astNode.m_astNode);
     int &position = astNode.m_position;
 
-    // Start at resume position + 1 as reaching here implies the child node was
-    // successfully visited, move on to the next one.
-    for (int i = position + 1; i < scope.m_childNodes.count(); i++) {
+    // Revisiting nodes in the stack means we have to check if the previous
+    // was successfully visited and move on to the next if so
+    if (m_visitStatus == eVisitStatus::Success)
+        position++;
+
+    for (int i = position; i < scope.m_childNodes.count(); i++) {
         position = i;
         scope.m_childNodes.at(i)->welcome(*this);
         if (m_visitStatus != eVisitStatus::Success) {
@@ -358,8 +472,11 @@ void PageBuilder::newParagraph()
 {
     if (m_pCurrentBox) {
         m_pCurrentBox = nullptr;
-        NewLine newLine;
-        visit(newLine);
+
+        if (!m_currentColumn.isEmpty()) {
+            NewLine newLine;
+            visit(newLine);
+        }
     }
 
     VSpace vSpace;
@@ -369,6 +486,8 @@ void PageBuilder::newParagraph()
 
 void PageBuilder::endPage()
 {
+    AlignColumn(*this);
+
     if (m_pCurrentBox) {
         if (m_pCurrentBox->m_enclosedItems.isEmpty())
             delete m_pCurrentBox;

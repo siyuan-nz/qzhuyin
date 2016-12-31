@@ -5,6 +5,8 @@
 
 class HSpace;
 class VSpace;
+class Label;
+class Ref;
 class NewLine;
 class NewPage;
 class NewParagraph;
@@ -25,6 +27,8 @@ class AstVisitor
 public:
     virtual void visit(HSpace &) { qWarning("visit(HSpace &) unimplemented"); }
     virtual void visit(VSpace &) { qWarning("visit(VSpace &) unimplemented"); }
+    virtual void visit(Label &) { qWarning("visit(Label &) unimplemented"); }
+    virtual void visit(Ref &) { qWarning("visit(Ref &) unimplemented"); }
     virtual void visit(NewLine &) { qWarning("visit(NewLine &) unimplemented"); }
     virtual void visit(NewPage &) { qWarning("visit(NewPage &) unimplemented"); }
     virtual void visit(NewParagraph &) { qWarning("visit(NewParagraph &) unimplemented"); }

@@ -1,12 +1,16 @@
+#include <QCommandLineParser>
 #include <QCoreApplication>
 #include <QFile>
 #include <QHash>
 #include <QTextStream>
-#include <QDebug>
 
 #include <iostream>
 
 typedef QHash<QChar, QString> ZhuYinMap;
+
+struct Options {
+    QString fileName;
+};
 
 void loadDb(ZhuYinMap &map)
 {
@@ -26,18 +30,43 @@ void loadDb(ZhuYinMap &map)
     }
 }
 
+void parseOptions(const QCoreApplication &app, Options &options)
+{
+    QCommandLineParser parser;
+    parser.setApplicationDescription(QStringLiteral("Chinese phonetic guide insertion tool for qzhuyin"));
+    parser.addHelpOption();
+    parser.addVersionOption();
+    parser.addPositionalArgument(QStringLiteral("text_file"), QCoreApplication::translate("main", "Text file."));
+    parser.process(app);
+
+    QStringList positionalArguments = parser.positionalArguments();
+    if (!positionalArguments.isEmpty())
+        options.fileName = positionalArguments.first();
+}
+
 int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
 
+    Options options;
+    parseOptions(app, options);
+
     ZhuYinMap map;
     loadDb(map);
 
-    QFile stdIn;
-    stdIn.open(stdin, QIODevice::ReadOnly | QIODevice::Text);
+    QFile sourceFile;
+    if (options.fileName.isEmpty() || options.fileName == QStringLiteral("-"))
+        sourceFile.open(stdin, QIODevice::ReadOnly | QIODevice::Text);
+    else {
+        sourceFile.setFileName(options.fileName);
+        if (!sourceFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            qWarning("Unable to open %s", qPrintable(options.fileName));
+            exit(1);
+        }
+    }
 
     QByteArray buffer;
-    while (!(buffer = stdIn.read(4096)).isEmpty()) {
+    while (!(buffer = sourceFile.read(4096)).isEmpty()) {
         QString stringBuffer = QString::fromUtf8(buffer);
         bool writeOut = false;
         QString text;

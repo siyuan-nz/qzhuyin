@@ -24,6 +24,13 @@ void Box::welcome(PageItemVisitor &visitor)
     visitor.visit(*this);
 }
 
+CLASSNAME(LabelText)
+
+void LabelText::welcome(PageItemVisitor &visitor)
+{
+    visitor.visit(*this);
+}
+
 CLASSNAME(LineText)
 
 void LineText::welcome(PageItemVisitor &visitor)

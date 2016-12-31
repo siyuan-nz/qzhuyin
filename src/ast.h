@@ -34,6 +34,25 @@ public:
     int m_space;
 };
 
+class Label : public AstNode
+{
+public:
+    QString className() const override;
+    void welcome(AstVisitor &visitor) override;
+
+    int m_id;
+    QString m_label;
+};
+
+class Ref : public AstNode
+{
+public:
+    QString className() const override;
+    void welcome(AstVisitor &visitor) override;
+
+    Label *m_labelNode = nullptr;
+};
+
 class NewLine : public AstNode
 {
 public:

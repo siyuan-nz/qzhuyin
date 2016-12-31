@@ -24,6 +24,16 @@ void PageRenderer::visit(Box &box)
         item->welcome(*this);
 }
 
+void PageRenderer::visit(LabelText &labelText)
+{
+    m_painter.setFont(labelText.m_font);
+
+    const QFontMetrics &fontMetrics = m_painter.fontMetrics();
+    int x = labelText.m_rect.x() + (labelText.m_rect.width() - fontMetrics.width(labelText.m_text.at(0))) / 2;
+    int y = labelText.m_rect.y() + fontMetrics.height();
+    drawText(x, y, labelText.m_text);
+}
+
 void PageRenderer::visit(LineText &lineText)
 {
     m_painter.setFont(lineText.m_font);

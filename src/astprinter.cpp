@@ -32,6 +32,21 @@ void AstPrinter::visit(VSpace &astNode)
     printLine(message);
 }
 
+void AstPrinter::visit(Label &astNode)
+{
+    QString message = astNode.className() + QStringLiteral(": label = ") + astNode.m_label;
+    printLine(message);
+}
+
+void AstPrinter::visit(Ref &astNode)
+{
+    if (astNode.m_labelNode == nullptr)
+        qFatal("Cannot find the corresponding \\label for \\ref");
+
+    QString message = astNode.className() + QStringLiteral(": label = ") + astNode.m_labelNode->m_label;
+    printLine(message);
+}
+
 void AstPrinter::visit(NewLine &astNode)
 {
     printLine(astNode.className());

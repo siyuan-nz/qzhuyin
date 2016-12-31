@@ -26,7 +26,9 @@ CommandStatus & CommandStatus::operator=(CommandStatus && other)
 Qzy2Ast::Qzy2Ast(const QString &fileName)
     : m_cCmd2Func{
           { QStringLiteral("hspace"), std::bind(&Qzy2Ast::hSpace, this, _1) },
+          { QStringLiteral("label"), std::bind(&Qzy2Ast::label, this, _1) },
           { QStringLiteral("newpage"), std::bind(&Qzy2Ast::newPage, this, _1) },
+          { QStringLiteral("ref"), std::bind(&Qzy2Ast::ref, this, _1) },
           { QStringLiteral("setbottommargin"), std::bind(&Qzy2Ast::setBottomMargin, this, _1) },
           { QStringLiteral("setfont"), std::bind(&Qzy2Ast::setFont, this, _1) },
           { QStringLiteral("setfontsize"), std::bind(&Qzy2Ast::setFontSize, this, _1) },
@@ -72,7 +74,8 @@ AstNode* Qzy2Ast::parse()
         qWarning("%s:%u,%u: warning: %s", qPrintable(m_fileName), line, column, qPrintable(msg));
     };
     auto onError = [&line, &column, this](const QString &msg) {
-        qFatal("%s:%u,%u: error: %s", qPrintable(m_fileName), line, column, qPrintable(msg));
+        qWarning("%s:%u,%u: error: %s", qPrintable(m_fileName), line, column, qPrintable(msg));
+        exit(1);
     };
 
     while (!(buffer = textStream.read(4096)).isEmpty()) {
@@ -286,9 +289,8 @@ void Qzy2Ast::appendWarningMessage(CommandStatus &status, const QString &message
 {
     if (status.message.isEmpty())
         status.message = message;
-    else {
+    else
         status.message += '\n' + message;
-    }
 }
 
 CommandStatus Qzy2Ast::hSpace(const QString &arg)
@@ -316,6 +318,60 @@ CommandStatus Qzy2Ast::vSpace(const QString &arg)
         m_scopeStack.top()->m_childNodes.append(pVSpace);
     }
 
+    return status;
+}
+
+CommandStatus Qzy2Ast::label(const QString &arg)
+{
+    static int id = 1;
+    CommandStatus status;
+    Label *pLabel = new Label;
+    pLabel->m_id = id++;
+
+    if (!arg.isEmpty()) {
+        pLabel->m_label = arg;
+
+        const auto labelIter = m_namedLabelHash.find(arg);
+        if (labelIter == m_namedLabelHash.end()) {
+            m_namedLabelHash[arg] = pLabel;
+        } else {
+            status.status = eCommandStatus::Error;
+            status.message = QStringLiteral("label \"") + arg + QStringLiteral("\" has already been used");
+            return status;
+        }
+    }
+
+    m_unreferencedLabels.append(pLabel);
+    m_scopeStack.top()->m_childNodes.append(pLabel);
+    status.status = eCommandStatus::Success;
+    return status;
+}
+
+CommandStatus Qzy2Ast::ref(const QString &arg)
+{
+    CommandStatus status;
+    Ref *pRef = new Ref;
+
+    if (arg.isEmpty()) {
+        if (m_unreferencedLabels.empty()) {
+            status.status = eCommandStatus::Error;
+            status.message = QStringLiteral("no label to reference");
+            return status;
+        } else
+            pRef->m_labelNode = m_unreferencedLabels.takeFirst();
+    } else {
+        const auto labelIter = m_namedLabelHash.find(arg);
+        if (labelIter == m_namedLabelHash.end()) {
+            status.status = eCommandStatus::Error;
+            status.message = QStringLiteral("cannot find label \"") + arg + '"';
+            return status;
+        } else {
+            pRef->m_labelNode = labelIter.value();
+        }
+    }
+
+    m_scopeStack.top()->m_childNodes.append(pRef);
+    status.status = eCommandStatus::Success;
     return status;
 }
 

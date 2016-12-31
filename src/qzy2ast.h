@@ -8,6 +8,7 @@
 #include <QString>
 
 class AstNode;
+class Label;
 class Scope;
 
 enum class eCommandStatus {
@@ -35,7 +36,9 @@ public:
 private:
     CommandStatus hSpace(const QString &arg);
     CommandStatus vSpace(const QString &arg);
+    CommandStatus label(const QString &arg);
     CommandStatus newPage(const QString &arg);
+    CommandStatus ref(const QString &arg);
     CommandStatus setBottomMargin(const QString &arg);
     CommandStatus setLeftMargin(const QString &arg);
     CommandStatus setRightMargin(const QString &arg);
@@ -63,6 +66,8 @@ private:
     const QHash<QString, std::function<CommandStatus(const QString &)> > m_cCmd2Func;
     QString m_fileName;
     QStack<Scope *> m_scopeStack;
+    QHash<QString, Label *> m_namedLabelHash;
+    QList<Label *> m_unreferencedLabels;
 };
 
 #endif
