@@ -65,15 +65,15 @@ int main(int argc, char *argv[])
         }
     }
 
-    QByteArray buffer;
-    while (!(buffer = sourceFile.read(4096)).isEmpty()) {
-        QString stringBuffer = QString::fromUtf8(buffer);
+    QTextStream textStream(&sourceFile);
+    QString buffer;
+    while (!(buffer = textStream.read(4096)).isEmpty()) {
         bool writeOut = false;
         QString text;
         QStringList zhuYinList;
 
-        for (int i = 0; i < stringBuffer.length(); i++) {
-            QChar c = stringBuffer.at(i);
+        for (int i = 0; i < buffer.length(); i++) {
+            QChar c = buffer.at(i);
 
             if (c.isSpace() || c.isPunct()) {
                 writeOut = true;
@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
                     zhuYinList += result.join('|');
             }
 
-            if (writeOut || i >= (stringBuffer.length() - 1)) {
+            if (writeOut || i >= (buffer.length() - 1)) {
                 if (!zhuYinList.isEmpty())
                     text += QStringLiteral("\\zhuyin{") + zhuYinList.join(' ') + '}';
 

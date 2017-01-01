@@ -47,8 +47,8 @@ AstNode* Qzy2Ast::parse()
     QFile qzyFile(m_fileName);
 
     if (!qzyFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        qFatal("Unable to open %s: error %d", qPrintable(m_fileName), qzyFile.error());
-        return nullptr;
+        qWarning("Unable to open %s: error %d", qPrintable(m_fileName), qzyFile.error());
+        exit(1);
     }
 
     m_scopeStack.push(new Scope);
