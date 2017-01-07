@@ -1,10 +1,13 @@
 #include "pagedebugoutput.h"
+#include "common.h"
 #include "page.h"
 #include "pageitem.h"
 
 #include <iostream>
 
 #include <QDebug>
+
+CLASSNAME(PageDebugOutput)
 
 PageDebugOutput::PageDebugOutput(Page &page)
 {
@@ -49,6 +52,14 @@ void PageDebugOutput::visit(Box &box)
         item->welcome(*this);
     }
     m_indentLevel--;
+}
+
+void PageDebugOutput::visit(EllipsisText &ellipsisText)
+{
+    QString debugMsg;
+    QDebug debug(&debugMsg);
+    debug << ellipsisText.className() << ellipsisText.m_rect;
+    qDebug("%s%s", qPrintable(indent()), qPrintable(debugMsg));
 }
 
 void PageDebugOutput::visit(LabelText &labelText)

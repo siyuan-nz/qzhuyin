@@ -1,7 +1,10 @@
 #include "astprinter.h"
 #include "ast.h"
+#include "common.h"
 
 #include <iostream>
+
+CLASSNAME(AstPrinter)
 
 AstPrinter::AstPrinter(AstNode &root)
 {
@@ -18,6 +21,12 @@ void AstPrinter::printLine(const QString &message)
 {
     printIndent();
     std::cout << qPrintable(message) << std::endl;
+}
+
+void AstPrinter::visit(Ellipsis &astNode)
+{
+    QString message = astNode.className() + QStringLiteral(": length = ") + QString::number(astNode.m_length);
+    printLine(message);
 }
 
 void AstPrinter::visit(HSpace &astNode)
@@ -126,6 +135,12 @@ void AstPrinter::visit(Text &astNode)
         }
     }
 
+    printLine(message);
+}
+
+void AstPrinter::visit(EllipsisRef &astNode)
+{
+    QString message = astNode.className() + QStringLiteral(": position = ") + QString::number(astNode.m_position);
     printLine(message);
 }
 

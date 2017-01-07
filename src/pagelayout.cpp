@@ -1,9 +1,12 @@
 #include "pagelayout.h"
+#include "common.h"
 #include "movepageitem.h"
 #include "page.h"
 #include "pageitem.h"
 
 #include <QRegion>
+
+CLASSNAME(PageLayout)
 
 void PageLayout::layout(Page &page)
 {

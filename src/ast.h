@@ -16,6 +16,15 @@ public:
     virtual void welcome(AstVisitor &visitor) = 0;
 };
 
+class Ellipsis : public AstNode
+{
+public:
+    QString className() const override;
+    void welcome(AstVisitor &visitor) override;
+
+    int m_length;
+};
+
 class HSpace : public AstNode
 {
 public:
@@ -151,6 +160,16 @@ public:
     AstNodeRef(AstNode &ref);
 
     AstNode &m_astNode;
+};
+
+class EllipsisRef : public AstNodeRef
+{
+public:
+    EllipsisRef(Ellipsis &ellipsis, int position);
+    QString className() const override;
+    void welcome(AstVisitor &visitor) override;
+
+    int m_position;
 };
 
 class NewParagraphRef : public AstNodeRef

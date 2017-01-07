@@ -28,6 +28,15 @@ public:
     QList<PageItem *> m_enclosedItems;
 };
 
+class EllipsisText : public PageItem
+{
+public:
+    QString className() const override;
+    void welcome(PageItemVisitor &visitor) override;
+
+    QFont m_font;
+};
+
 class LabelText : public PageItem
 {
 public:

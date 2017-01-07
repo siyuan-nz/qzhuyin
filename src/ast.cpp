@@ -1,13 +1,16 @@
 #include "ast.h"
 #include "astvisitor.h"
-
-#define CLASSNAME(name) \
-QString name::className() const { \
-    return #name; \
-}
+#include "common.h"
 
 AstNode::~AstNode()
 {
+}
+
+CLASSNAME(Ellipsis)
+
+void Ellipsis::welcome(AstVisitor &visitor)
+{
+    visitor.visit(*this);
 }
 
 CLASSNAME(HSpace)
@@ -126,6 +129,19 @@ AstNodeRef::AstNodeRef(AstNode &ref)
 {
 }
 
+EllipsisRef::EllipsisRef(Ellipsis &ellipsis, int position)
+    : AstNodeRef(ellipsis)
+    , m_position(position)
+{
+}
+
+CLASSNAME(EllipsisRef)
+
+void EllipsisRef::welcome(AstVisitor &visitor)
+{
+    visitor.visit(*this);
+}
+
 CLASSNAME(NewParagraphRef)
 
 void NewParagraphRef::welcome(AstVisitor &visitor)
@@ -133,7 +149,7 @@ void NewParagraphRef::welcome(AstVisitor &visitor)
     visitor.visit(*this);
 }
 
-ScopeRef::ScopeRef(Scope& scope, int position)
+ScopeRef::ScopeRef(Scope &scope, int position)
     : AstNodeRef(scope)
     , m_position(position)
 {

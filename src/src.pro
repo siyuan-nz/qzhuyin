@@ -11,6 +11,7 @@ QT += gui
 HEADERS += ast.h \
            astprinter.h \
            astvisitor.h \
+           common.h \
            movepageitem.h \
            page.h \
            pagebuilder.h \

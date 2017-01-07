@@ -1,11 +1,6 @@
 #include "pageitem.h"
-
+#include "common.h"
 #include "pageitemvisitor.h"
-
-#define CLASSNAME(name) \
-QString name::className() const { \
-    return #name; \
-}
 
 PageItem::~PageItem()
 {
@@ -20,6 +15,13 @@ Box::~Box()
 CLASSNAME(Box)
 
 void Box::welcome(PageItemVisitor &visitor)
+{
+    visitor.visit(*this);
+}
+
+CLASSNAME(EllipsisText)
+
+void EllipsisText::welcome(PageItemVisitor &visitor)
 {
     visitor.visit(*this);
 }

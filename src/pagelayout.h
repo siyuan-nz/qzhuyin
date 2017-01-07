@@ -13,6 +13,7 @@ class PageItem;
 class PageLayout : protected PageItemVisitor
 {
 public:
+    QString className() const override;
     void layout(Page &page);
 
 protected:
