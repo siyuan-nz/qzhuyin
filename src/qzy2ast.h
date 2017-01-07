@@ -34,6 +34,7 @@ public:
     AstNode* parse();
 
 private:
+    CommandStatus ellipsis(const QString &arg);
     CommandStatus hSpace(const QString &arg);
     CommandStatus vSpace(const QString &arg);
     CommandStatus label(const QString &arg);

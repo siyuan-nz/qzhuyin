@@ -25,6 +25,7 @@ CommandStatus & CommandStatus::operator=(CommandStatus && other)
 
 Qzy2Ast::Qzy2Ast(const QString &fileName)
     : m_cCmd2Func{
+          { QStringLiteral("ellipsis"), std::bind(&Qzy2Ast::ellipsis, this, _1) },
           { QStringLiteral("hspace"), std::bind(&Qzy2Ast::hSpace, this, _1) },
           { QStringLiteral("label"), std::bind(&Qzy2Ast::label, this, _1) },
           { QStringLiteral("newpage"), std::bind(&Qzy2Ast::newPage, this, _1) },
@@ -291,6 +292,23 @@ void Qzy2Ast::appendWarningMessage(CommandStatus &status, const QString &message
         status.message = message;
     else
         status.message += '\n' + message;
+}
+
+CommandStatus Qzy2Ast::ellipsis(const QString &arg)
+{
+    CommandStatus status;
+    int length = 1;
+
+    if (!arg.isEmpty())
+        length = parseSingleIntArg(status, QStringLiteral("ellipsis"), arg);
+
+    if (status.status == eCommandStatus::Success) {
+        Ellipsis *pEllipsis = new Ellipsis;
+        pEllipsis->m_length = length;
+        m_scopeStack.top()->m_childNodes.append(pEllipsis);
+    }
+
+    return status;
 }
 
 CommandStatus Qzy2Ast::hSpace(const QString &arg)

@@ -20,9 +20,11 @@ public:
     PageBuilder(QPdfWriter &pdfWriter, AstNode &root);
     ~PageBuilder();
 
+    QString className() const override;
     Page* nextPage();
 
 protected:
+    void visit(Ellipsis &) override;
     void visit(HSpace &) override;
     void visit(VSpace &) override;
     void visit(Label &) override;
@@ -38,6 +40,7 @@ protected:
     void visit(SetRightMargin &) override;
     void visit(SetTopMargin &) override;
     void visit(Text &) override;
+    void visit(EllipsisRef &) override;
     void visit(NewParagraphRef &) override;
     void visit(ScopeRef &) override;
     void visit(TextRef &) override;

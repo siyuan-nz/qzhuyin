@@ -43,3 +43,6 @@ Create a label, optionally with a name, which can be referred to later. See
 \ref{name}
 Refer to a previously defined label, optionally by name. If a name is not
 specified, the reference will be matched with the first unreferenced \label.
+
+\ellipsis{length}
+Insert three dots * length. The default length is 1 if omitted.

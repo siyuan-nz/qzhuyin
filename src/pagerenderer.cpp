@@ -1,10 +1,13 @@
 #include "pagerenderer.h"
+#include "common.h"
 #include "page.h"
 #include "pageitem.h"
 #include "zhchar.h"
 
 #include <QPdfWriter>
 #include <QString>
+
+CLASSNAME(PageRenderer)
 
 PageRenderer::PageRenderer(QPdfWriter& pdfWriter)
     : m_pdfWriter(pdfWriter)
@@ -22,6 +25,30 @@ void PageRenderer::visit(Box &box)
 {
     for (auto item : box.m_enclosedItems)
         item->welcome(*this);
+}
+
+void PageRenderer::visit(EllipsisText &ellipsisText)
+{
+    m_painter.setFont(ellipsisText.m_font);
+
+    const QChar dot(0xFF0E);
+    const QFontMetrics &fontMetrics = m_painter.fontMetrics();
+    QRect dotRect = fontMetrics.boundingRect(dot);
+    for (int i = 0; i < 3; i++) {
+        int x = ellipsisText.m_rect.x() +
+                (ellipsisText.m_rect.width() - fontMetrics.width(dot)) / 2;
+        // -------  gap
+        // ---o--- _/
+        // -------
+        // ---o--- centerAtY
+        // -------
+        // ---o---
+        // -------
+        int gap = ellipsisText.m_rect.height() / 6;
+        int centerAtY = ellipsisText.m_rect.y() + gap / 2 + i * 2 * gap;
+        int y = centerAtY - dotRect.y() + dotRect.height();
+        drawText(x, y, QString(dot));
+    }
 }
 
 void PageRenderer::visit(LabelText &labelText)

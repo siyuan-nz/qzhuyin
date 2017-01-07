@@ -13,9 +13,11 @@ class PageDebugOutput : public PageItemVisitor
 {
 public:
     PageDebugOutput(Page &page);
+    QString className() const override;
 
 protected:
     void visit(Box &) override;
+    void visit(EllipsisText &) override;
     void visit(LabelText &) override;
     void visit(LineText &) override;
 

@@ -1,6 +1,7 @@
 #include "pagebuilder.h"
 
 #include "ast.h"
+#include "common.h"
 #include "movepageitem.h"
 #include "page.h"
 #include "pageitem.h"
@@ -63,9 +64,11 @@ class AlignColumn : protected PageItemVisitor
 {
 public:
     AlignColumn(PageBuilder &pageBuilder);
+    QString className() const override;
 
 protected:
     void visit(Box &) override;
+    void visit(EllipsisText &) override;
     void visit(LabelText &) override;
     void visit(LineText &) override;
 
@@ -80,6 +83,8 @@ private:
     PageItem &m_anchorItem;
     int m_anchorItemWidth;
 };
+
+CLASSNAME(AlignColumn)
 
 AlignColumn::AlignColumn(PageBuilder& pageBuilder)
     : m_alignMode(eAlignMode::Anchor)
@@ -114,6 +119,24 @@ void AlignColumn::visit(Box &box)
         {
             int newX = m_anchorItem.m_rect.x() + (m_anchorItemWidth - box.m_rect.width()) / 2;
             MovePageItem(box, newX);
+        }
+        break;
+    }
+}
+
+void AlignColumn::visit(EllipsisText &ellipsisText)
+{
+    int rectWidth = ellipsisText.m_rect.width();
+
+    switch (m_alignMode)
+    {
+    case eAlignMode::Anchor:
+        m_anchorItemWidth = rectWidth;
+        break;
+    case eAlignMode::Item:
+        {
+            int newX = m_anchorItem.m_rect.x() + (m_anchorItemWidth - rectWidth) / 2;
+            ellipsisText.m_rect.moveLeft(newX);
         }
         break;
     }
@@ -156,6 +179,8 @@ void AlignColumn::visit(LineText &lineText)
         break;
     }
 }
+
+CLASSNAME(PageBuilder)
 
 PageBuilder::PageBuilder(QPdfWriter &pdfWriter, AstNode &root)
     : m_pdfWriter(pdfWriter)
@@ -203,6 +228,38 @@ Page* PageBuilder::nextPage()
     return pPage;
 }
 
+void PageBuilder::visit(Ellipsis &astNode)
+{
+    QFont currentFont = m_fontStack.top();
+    QFontMetrics fontMetrics(currentFont, &m_pdfWriter);
+    int position = 0;
+    Resume<EllipsisRef *> resume(*this,
+                                 [&position, &astNode]() -> EllipsisRef* {
+        return new EllipsisRef(astNode, position);
+    });
+
+    for (int i = 0; i < astNode.m_length; i++) {
+        EllipsisText *pEllipsisText = new EllipsisText;
+        pEllipsisText->m_rect.setWidth(fontMetrics.width(QChar(0xFF0E)));
+        pEllipsisText->m_rect.setHeight(fontMetrics.lineSpacing());
+        pEllipsisText->m_font = currentFont;
+        m_visitStatus = fitItem(pEllipsisText);
+
+        if (m_visitStatus == eVisitStatus::Success) {
+            if (m_pCurrentBox == nullptr) {
+                m_pCurrentBox = new Box;
+                m_xPage->addPageItem(m_pCurrentBox);
+            }
+
+            position = i;
+            m_pCurrentBox->m_enclosedItems.append(pEllipsisText);
+        } else {
+            delete pEllipsisText;
+            break;
+        }
+    }
+}
+
 void PageBuilder::visit(HSpace &astNode)
 {
     QFont currentFont = m_fontStack.top();
@@ -244,7 +301,7 @@ void PageBuilder::visit(Label &astNode)
     QFontMetrics fontMetrics(currentFont, &m_pdfWriter);
     QString numString = QString::number(astNode.m_id);
     int textLength = numString.length() + 2; // +2 to accomodate parenthese
-    float pointSizeF = currentFont.pointSize() / textLength;
+    float pointSizeF = currentFont.pointSizeF() / textLength;
 
     QString labelStr = QStringLiteral("︵");
     for (int i = 0; i < numString.length(); i++)
@@ -415,9 +472,34 @@ void PageBuilder::visit(Text &astNode)
                              [&position, &astNode]() -> TextRef* {
         return new TextRef(astNode, position);
     });
+}
 
-    if (m_visitStatus != eVisitStatus::Success)
-        endPage();
+void PageBuilder::visit(EllipsisRef &astNode)
+{
+    QFont currentFont = m_fontStack.top();
+    QFontMetrics fontMetrics(currentFont, &m_pdfWriter);
+    Ellipsis &ellipsisNode = static_cast<Ellipsis&>(astNode.m_astNode);
+
+    for (int i = 0; i < ellipsisNode.m_length; i++) {
+        EllipsisText *pEllipsisText = new EllipsisText;
+        pEllipsisText->m_rect.setWidth(fontMetrics.width(QChar(0xFF0E)));
+        pEllipsisText->m_rect.setHeight(fontMetrics.lineSpacing());
+        pEllipsisText->m_font = currentFont;
+        m_visitStatus = fitItem(pEllipsisText);
+
+        if (m_visitStatus == eVisitStatus::Success) {
+            if (m_pCurrentBox == nullptr) {
+                m_pCurrentBox = new Box;
+                m_xPage->addPageItem(m_pCurrentBox);
+            }
+
+            astNode.m_position = i;
+            m_pCurrentBox->m_enclosedItems.append(pEllipsisText);
+        } else {
+            delete pEllipsisText;
+            break;
+        }
+    }
 }
 
 void PageBuilder::visit(NewParagraphRef &)
@@ -462,10 +544,6 @@ void PageBuilder::visit(TextRef &astNode)
 {
     Text &text = static_cast<Text &>(astNode.m_astNode);
     astNode.m_position = layoutText(text.m_text, astNode.m_position);
-
-    if (m_visitStatus != eVisitStatus::Success) {
-        endPage();
-    }
 }
 
 void PageBuilder::newParagraph()

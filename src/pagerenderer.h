@@ -13,10 +13,12 @@ class PageRenderer : protected PageItemVisitor
 {
 public:
     PageRenderer(QPdfWriter &pdfWriter);
+    QString className() const override;
     void render(Page &page);
 
 protected:
     void visit(Box &) override;
+    void visit(EllipsisText &) override;
     void visit(LabelText &) override;
     void visit(LineText &) override;
 
