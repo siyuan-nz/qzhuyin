@@ -84,7 +84,7 @@ void PageRenderer::drawZhChar(int x, int y, const ZhChar &zhChar)
     m_painter.drawText(x, charY, zhChar.zhChar());
     x += fontMetrics.width(zhChar.zhChar());
 
-    QString &&zhuYin = zhChar.zhuYin();
+    QString zhuYin = zhChar.zhuYin();
     if (zhuYin.isEmpty())
         return;
 

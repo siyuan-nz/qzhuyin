@@ -10,13 +10,13 @@ CommandStatus::CommandStatus()
 {
 }
 
-CommandStatus::CommandStatus(CommandStatus && other)
+CommandStatus::CommandStatus(CommandStatus &&other) noexcept
     : status(other.status)
     , message(std::move(other.message))
 {
 }
 
-CommandStatus & CommandStatus::operator=(CommandStatus && other)
+CommandStatus & CommandStatus::operator=(CommandStatus &&other) noexcept
 {
     status = other.status;
     message = std::move(other.message);
@@ -114,7 +114,7 @@ AstNode* Qzy2Ast::parse()
                             onError(QStringLiteral("unknown command ") + commandName);
 
                         commandArguments = commandArguments.simplified();
-                        CommandStatus &&status = (*funcIter)(commandArguments);
+                        CommandStatus status = (*funcIter)(commandArguments);
                         switch (status.status) {
                         case eCommandStatus::Success:
                             pCurrentText = nullptr;
@@ -487,7 +487,7 @@ CommandStatus Qzy2Ast::zhuYin(const QString &arg)
 
     Text *pText = dynamic_cast<Text *>(m_scopeStack.top()->m_childNodes.last());
     if (pText) {
-        QStringList &&zhuYinList = arg.split(' ', QString::SkipEmptyParts);
+        QStringList zhuYinList = arg.split(' ', QString::SkipEmptyParts);
         bool prematureTerminate = false;
         auto textIter = pText->m_text.rbegin();
         auto textEnd = pText->m_text.rend();

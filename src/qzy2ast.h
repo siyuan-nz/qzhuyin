@@ -20,8 +20,8 @@ enum class eCommandStatus {
 struct CommandStatus
 {
     CommandStatus();
-    CommandStatus(CommandStatus &&other);
-    CommandStatus& operator=(CommandStatus &&other);
+    CommandStatus(CommandStatus &&other) noexcept;
+    CommandStatus& operator=(CommandStatus &&other) noexcept;
 
     eCommandStatus status;
     QString message;
@@ -64,7 +64,7 @@ private:
         Text,
     } m_parseState = eParseState::Text;
 
-    const QHash<QString, std::function<CommandStatus(const QString &)> > m_cCmd2Func;
+    const QHash<QString, std::function<CommandStatus(const QString &)>> m_cCmd2Func;
     QString m_fileName;
     QStack<Scope *> m_scopeStack;
     QHash<QString, Label *> m_namedLabelHash;
