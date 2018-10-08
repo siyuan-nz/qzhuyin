@@ -17,7 +17,7 @@ ZhChar::ZhChar(const ZhChar &other)
 {
 }
 
-ZhChar::ZhChar(ZhChar &&other)
+ZhChar::ZhChar(ZhChar &&other) noexcept
     : m_char(std::move(other.m_char))
     , m_tone(std::move(other.m_tone))
     , m_zhuYin(std::move(other.m_zhuYin))
@@ -32,7 +32,7 @@ ZhChar& ZhChar::operator=(const ZhChar &other)
     return *this;
 }
 
-ZhChar& ZhChar::operator=(ZhChar &&other)
+ZhChar& ZhChar::operator=(ZhChar &&other) noexcept
 {
     m_char = std::move(other.m_char);
     m_tone = std::move(other.m_tone);

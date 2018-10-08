@@ -10,7 +10,7 @@ class ZhChar
 public:
     ZhChar(const QChar &zhChar, const QString &zhuYin = QString());
     ZhChar(const ZhChar &other);
-    ZhChar(ZhChar &&other);
+    ZhChar(ZhChar &&other) noexcept;
 
     void setZhuYin(const QString &zhuyin);
     QChar tone() const;
@@ -18,7 +18,7 @@ public:
     QString zhuYin() const;
 
     ZhChar& operator=(const ZhChar &other);
-    ZhChar& operator=(ZhChar &&other);
+    ZhChar& operator=(ZhChar &&other) noexcept;
 
 private:
     void parseZhuYin(const QString &zhuYin);
