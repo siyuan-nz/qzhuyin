@@ -96,6 +96,7 @@ int main(int argc, char *argv[])
             text += c;
         }
     }
+    std::cout << std::endl;
 
     return 0;
 }
